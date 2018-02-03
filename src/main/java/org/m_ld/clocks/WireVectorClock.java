@@ -6,6 +6,9 @@ import java.util.Map;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableMap;
 
+/**
+ * An immutable vector clock representation intended to be used on the wire
+ */
 public class WireVectorClock<PID> extends AbstractVectorClock<PID>
 {
     private final PID pid;

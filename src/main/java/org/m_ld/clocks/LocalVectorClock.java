@@ -9,7 +9,8 @@ import static org.m_ld.clocks.WireVectorClock.clock;
 
 /**
  * Provides default Message Service functions to maintain correct state as the local process's vector clock.
- * Implementors must ensure methods are atomically applied in a concurrent environment.
+ * Since the methods {@link #onSend()} and {@link #onReceive(Message, Queue, Consumer)} mutate the clock state,
+ * implementors must ensure these methods are atomically applied in a concurrent environment.
  */
 public abstract class LocalVectorClock<PID> extends AbstractVectorClock<PID>
 {
