@@ -17,7 +17,7 @@ public interface VectorClock<PID> extends Message.Metadata
     /**
      * Obtains the ticks for a process. If the process is unknown, the default return value of <code>-1</code>
      * indicates that all messages relating to that process should be buffered until a message arrives which originated
-     * from the it, thus providing its initial state.
+     * from it, thus providing its initial state.
      * @param pid a Process ID
      * @return the number of ticks on that process's clock
      */

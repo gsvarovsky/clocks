@@ -5,20 +5,23 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.function.Consumer;
 
+import static org.m_ld.clocks.WireVectorClock.clock;
+
 /**
  * Provides default Message Service functions to maintain correct state as the local process's vector clock.
  * Implementors must ensure methods are atomically applied in a concurrent environment.
  */
-public abstract class LocalVectorClock<PID> implements VectorClock<PID>
+public abstract class LocalVectorClock<PID> extends AbstractVectorClock<PID>
 {
     /**
      * Call before sending this clock's state attached to a message.
-     * Callers must take care to atomically attach the snapshot to the message.
+     * Returns an immutable snapshot of this vector clock suitable for attachment to a message.
      */
-    public void onSend()
+    public VectorClock<PID> onSend()
     {
         // increment local process state value in local vector
         increment();
+        return snapshot();
     }
 
     /**
@@ -40,6 +43,14 @@ public abstract class LocalVectorClock<PID> implements VectorClock<PID>
         {
             return buffer.offer(message);
         }
+    }
+
+    /**
+     * @return an immutable snapshot of this vector clock.
+     */
+    public VectorClock<PID> snapshot()
+    {
+        return clock(processId(), vector());
     }
 
     private void increment()

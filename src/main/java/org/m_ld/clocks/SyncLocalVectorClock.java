@@ -3,7 +3,7 @@ package org.m_ld.clocks;
 import java.util.HashMap;
 import java.util.Map;
 
-class SyncLocalVectorClock<PID> extends LocalVectorClock<PID>
+public class SyncLocalVectorClock<PID> extends LocalVectorClock<PID>
 {
     private final PID pid;
     private final Map<PID, Long> vector = new HashMap<>();
