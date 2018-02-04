@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/gsvarovsky/clocks.svg?branch=master)](https://travis-ci.org/gsvarovsky/clocks)
+
 # clocks
 _causally-ordered message delivery_
 
