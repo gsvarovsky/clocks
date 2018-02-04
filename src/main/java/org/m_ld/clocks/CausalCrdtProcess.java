@@ -15,14 +15,27 @@ public abstract class CausalCrdtProcess<O>
     private final LocalVectorClock<UUID> localVectorClock = new SyncLocalVectorClock<>(UUID.randomUUID());
     private final LinkedList<Message<VectorClock<UUID>, O>> buffer = new LinkedList<>();
 
-    protected abstract void merge(O data);
+    /**
+     * Implementation of a conflict-free operation against the CRDT.
+     * @param operation the operation to perform
+     */
+    protected abstract void merge(O operation);
 
-    public synchronized Message<VectorClock<UUID>, O> update(O data)
+    /**
+     * Method for local update of the CRDT with a single operation.
+     * @param operation an operation to perform on the CRDT
+     * @return A Message suitable to be sent to other replicas of the CRDT
+     */
+    public synchronized Message<VectorClock<UUID>, O> update(O operation)
     {
-        merge(data);
-        return message(localVectorClock.onSend(), data);
+        merge(operation);
+        return message(localVectorClock.onSend(), operation);
     }
 
+    /**
+     * Method to be called by the framework to deliver a message from another replica.
+     * @param message the message containing an operation to apply to the CRDT
+     */
     public synchronized void receive(Message<VectorClock<UUID>, O> message)
     {
         if (!localVectorClock.onReceive(message, buffer, this::merge))

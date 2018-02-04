@@ -10,6 +10,7 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.m_ld.clocks.CausalCrdtProcessTest.OrSetOperation.Type.ADD;
+import static org.m_ld.clocks.CausalCrdtProcessTest.OrSetOperation.Type.REMOVE;
 
 public class CausalCrdtProcessTest
 {
@@ -80,5 +81,27 @@ public class CausalCrdtProcessTest
         assertEquals(converged, p1.elements());
         assertEquals(converged, p2.elements());
         assertEquals(converged, p3.elements());
+    }
+
+    @Test
+    public void testLinkedConvergence()
+    {
+        OrSetProcess<Integer> p1 = new OrSetProcess<>(), p2 = new OrSetProcess<>(), p3 = new OrSetProcess<>();
+
+        final Message<VectorClock<UUID>, OrSetOperation<Integer>> m1 =
+            p1.update(new OrSetOperation<>(ADD, "m1", 1));
+
+        p2.receive(m1);
+
+        final Message<VectorClock<UUID>, OrSetOperation<Integer>> m2 =
+            p2.update(new OrSetOperation<>(REMOVE, "m1", 1));
+
+        p3.receive(m2); // Should be ignored
+        p1.receive(m2);
+        p3.receive(m1); // Should add, then remove (m2)
+
+        assertEquals(emptySet(), p1.elements());
+        assertEquals(emptySet(), p2.elements());
+        assertEquals(emptySet(), p3.elements());
     }
 }
