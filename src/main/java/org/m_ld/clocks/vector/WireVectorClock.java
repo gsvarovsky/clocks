@@ -2,7 +2,9 @@ package org.m_ld.clocks.vector;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableMap;
 
@@ -10,7 +12,7 @@ import static java.util.Collections.unmodifiableMap;
  * An immutable vector clock representation intended to be used on the wire.
  * Intended to be extended with appropriate serialization features.
  */
-public class WireVectorClock<PID> extends AbstractVectorClock<PID>
+public class WireVectorClock<PID> implements VectorClock<PID>
 {
     private final PID pid;
     private final Map<PID, Long> vector;
@@ -51,5 +53,25 @@ public class WireVectorClock<PID> extends AbstractVectorClock<PID>
     public Map<PID, Long> vector()
     {
         return vector;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(processId(), vector());
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return obj instanceof VectorClock &&
+            Objects.equals(this.processId(), ((VectorClock)obj).processId()) &&
+            Objects.equals(this.vector(), ((VectorClock)obj).vector());
+    }
+
+    @Override
+    public String toString()
+    {
+        return format("VectorClock PID=%s, vector=%s", processId(), vector());
     }
 }
