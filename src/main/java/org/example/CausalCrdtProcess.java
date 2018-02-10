@@ -1,4 +1,9 @@
-package org.m_ld.clocks;
+package org.example;
+
+import org.m_ld.clocks.Message;
+import org.m_ld.clocks.vector.LocalVectorClock;
+import org.m_ld.clocks.vector.SyncLocalVectorClock;
+import org.m_ld.clocks.vector.VectorClock;
 
 import java.util.LinkedList;
 import java.util.UUID;

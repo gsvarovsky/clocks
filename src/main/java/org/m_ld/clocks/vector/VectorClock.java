@@ -1,4 +1,6 @@
-package org.m_ld.clocks;
+package org.m_ld.clocks.vector;
+
+import org.m_ld.clocks.Message;
 
 import java.util.Map;
 

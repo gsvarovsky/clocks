@@ -1,6 +1,7 @@
-package org.m_ld.clocks;
+package org.m_ld.clocks.vector;
 
 import org.junit.Test;
+import org.m_ld.clocks.Message;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,7 +12,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.m_ld.clocks.Message.message;
-import static org.m_ld.clocks.WireVectorClock.clock;
+import static org.m_ld.clocks.vector.WireVectorClock.clock;
 
 /**
  * Note that integer sum is a CRDT that does not require causal delivery,

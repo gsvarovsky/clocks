@@ -1,4 +1,4 @@
-package org.m_ld.clocks;
+package org.m_ld.clocks.vector;
 
 import java.util.Objects;
 

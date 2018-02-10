@@ -1,4 +1,4 @@
-package org.m_ld.clocks;
+package org.m_ld.clocks.vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +7,8 @@ import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableMap;
 
 /**
- * An immutable vector clock representation intended to be used on the wire
+ * An immutable vector clock representation intended to be used on the wire.
+ * Intended to be extended with appropriate serialization features.
  */
 public class WireVectorClock<PID> extends AbstractVectorClock<PID>
 {

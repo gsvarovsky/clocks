@@ -1,6 +1,8 @@
-package org.m_ld.clocks;
+package org.example;
 
 import org.junit.Test;
+import org.m_ld.clocks.Message;
+import org.m_ld.clocks.vector.VectorClock;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -11,10 +13,10 @@ import static java.lang.Math.max;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.example.CausalCrdtProcessTest.OrSetOperation.Type.ADD;
+import static org.example.CausalCrdtProcessTest.OrSetOperation.Type.REMOVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.m_ld.clocks.CausalCrdtProcessTest.OrSetOperation.Type.ADD;
-import static org.m_ld.clocks.CausalCrdtProcessTest.OrSetOperation.Type.REMOVE;
 
 public class CausalCrdtProcessTest
 {

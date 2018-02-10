@@ -1,11 +1,13 @@
-package org.m_ld.clocks;
+package org.m_ld.clocks.vector;
+
+import org.m_ld.clocks.Message;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.function.Consumer;
 
-import static org.m_ld.clocks.WireVectorClock.clock;
+import static org.m_ld.clocks.vector.WireVectorClock.clock;
 
 /**
  * Provides default Message Service functions to maintain correct state as the local process's vector clock.
