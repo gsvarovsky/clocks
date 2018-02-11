@@ -16,7 +16,7 @@ import static org.example.OrSetProcess.OrSetOperation.Type.REMOVE;
  * @param <M> the message metadata type. Must guarantee causal ordering
  * @param <E> the set element type
  */
-public class OrSetProcess<M extends Message.Metadata, E> extends CausalCrdtProcess<M, OrSetProcess.OrSetOperation<E>>
+public class OrSetProcess<M, E> extends CausalCrdtProcess<M, OrSetProcess.OrSetOperation<E>>
 {
     final Map<E, Set<Object>> elementIds = new HashMap<>();
 

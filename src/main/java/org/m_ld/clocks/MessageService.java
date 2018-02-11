@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  *
  * @param <T> The message metadata type to be used
  */
-public abstract class MessageService<T extends Message.Metadata>
+public abstract class MessageService<T>
 {
     /**
      * Call before sending this clock's state attached to a message.

@@ -1,10 +1,8 @@
 package org.m_ld.clocks.vector;
 
-import org.m_ld.clocks.Message;
-
 import java.util.Map;
 
-public interface VectorClock<PID> extends Message.Metadata
+public interface VectorClock<PID>
 {
     /**
      * @return the ID of the process from which this vector clock originated.

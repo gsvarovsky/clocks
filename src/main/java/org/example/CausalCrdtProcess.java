@@ -14,7 +14,7 @@ import static org.m_ld.clocks.Message.message;
  * @param <O> an operation type for an operation-based CRDT which requires causal delivery
  * @param <M> the message metadata type for this process
  */
-public abstract class CausalCrdtProcess<M extends Message.Metadata, O>
+public abstract class CausalCrdtProcess<M, O>
 {
     private final MessageService<M> messageService;
     private final LinkedList<Message<M, O>> buffer = new LinkedList<>();

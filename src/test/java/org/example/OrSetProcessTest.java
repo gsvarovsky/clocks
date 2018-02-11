@@ -18,7 +18,7 @@ import static org.example.OrSetProcess.OrSetOperation.Type.REMOVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public abstract class OrSetProcessTest<M extends Message.Metadata>
+public abstract class OrSetProcessTest<M>
 {
     public abstract OrSetProcess<M, Integer> createProcess();
 
