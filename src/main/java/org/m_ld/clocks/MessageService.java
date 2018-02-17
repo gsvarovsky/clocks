@@ -35,7 +35,7 @@ public abstract class MessageService<T>
     public <D, M extends Message<T, D>> boolean receive(
         M message, Queue<M> buffer, Consumer<D> process)
     {
-        if (laterThan(message.metadata()))
+        if (readyFor(message.metadata()))
         {
             deliver(message, buffer, process);
             return true;
@@ -67,9 +67,9 @@ public abstract class MessageService<T>
      * The basic determinant of whether we can deliver a message with the given metadata.
      *
      * @param metadata an incoming message's metadata
-     * @return <code>true</code> if our current clock state is "later than or equal to" the given metadata
+     * @return <code>true</code> if our current clock state has all required history for the given metadata
      */
-    public abstract boolean laterThan(T metadata);
+    public abstract boolean readyFor(T metadata);
 
     private <D, M extends Message<T, D>> void deliver(
         M message, Iterable<M> buffer, Consumer<D> process)
@@ -85,7 +85,7 @@ public abstract class MessageService<T>
         for (Iterator<M> bufferIter = buffer.iterator(); bufferIter.hasNext(); )
         {
             final M next = bufferIter.next();
-            if (laterThan(next.metadata()))
+            if (readyFor(next.metadata()))
             {
                 bufferIter.remove();
                 // Recurse to start the iteration again on the modified buffer

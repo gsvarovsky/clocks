@@ -13,6 +13,15 @@ import static org.m_ld.clocks.vector.WireVectorClock.clock;
  * Provides default Message Service functions to maintain state as the local process's vector clock.
  * Since the methods {@link #send()} and {@link #receive(Message, Queue, Consumer)} mutate the clock state,
  * implementors must ensure these methods are atomically applied in a concurrent environment.
+ * <p>
+ * Vector clock assumptions (after <a href="https://www.cl.cam.ac.uk/teaching/0910/ConcDistS/10b-ProcGp-order.pdf">
+ *     Concurrent and Distributed Systems 2009–10, Process groups and message ordering</a>):<ul>
+ * <li>messages are multicast to named process groups</li>
+ * <li>reliable channels: a given message is delivered reliably to all members of the group</li>
+ * <li>FIFO from a given source to a given destination FIFO from a given source to a given destination</li>
+ * <li>processes don’t crash (failure and restart not considered)</li>
+ * <li>no Byzantine behaviour</li>
+ * </ul>
  */
 public abstract class LocalVectorClock<PID> extends MessageService<VectorClock<PID>> implements VectorClock<PID>
 {
@@ -37,7 +46,7 @@ public abstract class LocalVectorClock<PID> extends MessageService<VectorClock<P
     }
 
     @Override
-    public boolean laterThan(VectorClock<PID> metadata)
+    public boolean readyFor(VectorClock<PID> metadata)
     {
         // do the sender and receiver agree on the state of all other processes?
         // If the sender has a higher state value for any of these others, the receiver is missing
