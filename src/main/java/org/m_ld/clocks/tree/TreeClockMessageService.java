@@ -2,6 +2,9 @@ package org.m_ld.clocks.tree;
 
 import org.m_ld.clocks.MessageService;
 
+/**
+ * A {@link MessageService} using a {@link TreeClock} to ensure causally-ordered message delivery.
+ */
 public class TreeClockMessageService extends MessageService<TreeClock>
 {
     private TreeClock localClock;
@@ -18,19 +21,19 @@ public class TreeClockMessageService extends MessageService<TreeClock>
     }
 
     @Override
-    public void event()
+    public synchronized void event()
     {
         localClock = localClock.tick();
     }
 
     @Override
-    public void join(TreeClock metadata)
+    public synchronized void join(TreeClock metadata)
     {
         localClock = localClock.update(metadata);
     }
 
     @Override
-    public boolean readyFor(TreeClock metadata)
+    public synchronized boolean readyFor(TreeClock metadata)
     {
         // do the sender and receiver agree on the state of all other processes?
         // If the sender has a higher state value for any of these others, the receiver is missing

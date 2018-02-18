@@ -7,12 +7,28 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * A clock in which process identities are forked from each other, with the option to re-merge.
+ * Like a {@link org.m_ld.clocks.vector.VectorClock}, a tree clock defines and carries its own process identity,
+ * as well as being able to be updated with ticks for other process identities.
+ * <p>
+ * In comparison to Vector Clocks, this method results in much less data being sent on the wire.
+ * This implementation is simplified from <a href="http://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf">
+ * Interval Tree Clocks
+ * </a>, which separate the Identity and Event portions of the clock and so offer even more opportunity for
+ * compression, but make it harder to exclude the sender and receiver from consideration when comparing.
+ * <p>
+ * This implementation is immutable and so thread-safe.
+ */
 public class TreeClock
 {
     private final boolean isId;
     private final long ticks;
     private final Fork fork;
 
+    /**
+     * An immutable pair of related clocks
+     */
     public static class Fork
     {
         public final TreeClock left, right;
@@ -44,14 +60,32 @@ public class TreeClock
         }
     }
 
+    /**
+     * A leaf clock to be used as a starting point.
+     * In general, a real process will probably need to also carry around an identifier for its process group,
+     * unless it can guarantee not to ever receive messages from other process groups.
+     */
     public static final TreeClock GENESIS = new TreeClock(true, 0, null);
+
+    /**
+     * A leaf clock with no process identity, used to scrub out IDs when merging and updating.
+     */
     private static final TreeClock HALLOWS = new TreeClock(false, 0, null);
 
+    /**
+     * @return the ticks for this clock. This includes only ticks for this clock's ID
+     * @see #ticks(Boolean)
+     */
     public long ticks()
     {
         return zeroIfNull(ticks(true));
     }
 
+    /**
+     * @param forId {@code true} to gather ticks for this clock's process identity;
+     * {@code false} for the union of all other process identities (like an inverse)
+     * @return ticks for this clock or all other clocks
+     */
     public Long ticks(Boolean forId)
     {
         if (forId == null || forId.equals(isId))
@@ -69,6 +103,10 @@ public class TreeClock
         return null;
     }
 
+    /**
+     * @return a new tree clock with this clock's process identity and one additional tick; thus,
+     * <code>this.tick().ticks() = this.tick() + 1</code>
+     */
     public TreeClock tick()
     {
         if (isId)
@@ -88,6 +126,14 @@ public class TreeClock
         return null;
     }
 
+    /**
+     * Forks this clock, copying its state into the result's left and right branches, which have distinct process
+     * identities.
+     * This clock should normally be discarded, and the process's state replaced with either the left or right
+     * of the result. This is because a clock can never be updated from any of its forks.
+     * @return a Fork of this clock
+     * @see #update(TreeClock)
+     */
     public Fork fork()
     {
         if (isId)
@@ -120,6 +166,12 @@ public class TreeClock
         return null;
     }
 
+    /**
+     * Update this clock with another clock's ticks.
+     * This method requires that the other clock's process identity does not overlap this one's.
+     * @param other another clock with a non-overlapping process identity, i.e. from a distinct branch
+     * @return a clock with this clock's process identity but including the other clock's ticks
+     */
     public TreeClock update(TreeClock other)
     {
         if (isId)
@@ -138,6 +190,13 @@ public class TreeClock
         }
     }
 
+    /**
+     * Merges this clock's process identity with another clock's process identity.
+     * This method does <b>not</b> merge in the other clock's ticks. This gives the caller the opportunity
+     * to compare merged clocks before and after update.
+     * @param other another clock
+     * @return a clock with this clock's ticks and a merged process identity
+     */
     public TreeClock mergeId(TreeClock other)
     {
         if (fork != null && other.fork != null)
@@ -159,7 +218,7 @@ public class TreeClock
         else
         {
             return new TreeClock(isId || other.isId, ticks, other.fork == null ? null :
-                                 new Fork(HALLOWS.mergeId(other.fork.left), HALLOWS.mergeId(other.fork.right)));
+                new Fork(HALLOWS.mergeId(other.fork.left), HALLOWS.mergeId(other.fork.right)));
         }
     }
 
