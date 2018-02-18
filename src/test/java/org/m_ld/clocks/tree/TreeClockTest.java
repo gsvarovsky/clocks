@@ -2,8 +2,7 @@ package org.m_ld.clocks.tree;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 public class TreeClockTest
 {
@@ -111,17 +110,46 @@ public class TreeClockTest
         assertEquals(1L, forked.right.ticks());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testBadMerge()
+    @Test
+    public void testTicksForGenesisNotId()
     {
-        TreeClock.merge(TreeClock.GENESIS, TreeClock.GENESIS);
+        final TreeClock ticked = TreeClock.GENESIS.tick();
+        assertNull(ticked.ticks(false));
+    }
+
+    @Test
+    public void testTicksForForkedNotId()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        assertEquals(0L, (long) fork.left.ticks(false));
+    }
+
+    @Test
+    public void testTicksForUpdatedForkedNotId()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        assertEquals(1L, (long) fork.left.update(fork.right.tick()).ticks(false));
+    }
+
+    @Test
+    public void testTicksForTickedUpdatedForkedNotId()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.tick().fork();
+        final TreeClock updatedLeft = fork.left.update(fork.right.tick());
+        assertEquals(2L, (long) updatedLeft.ticks(false));
+    }
+
+    @Test
+    public void testNoOpMerge()
+    {
+        assertEquals(TreeClock.GENESIS, TreeClock.GENESIS.mergeId(TreeClock.GENESIS));
     }
 
     @Test
     public void testMergeForked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertEquals(TreeClock.GENESIS, TreeClock.merge(fork.left, fork.right));
+        assertEquals(TreeClock.GENESIS, fork.left.mergeId(fork.right));
     }
 
     @Test
@@ -129,21 +157,21 @@ public class TreeClockTest
     {
         final TreeClock ticked = TreeClock.GENESIS.tick();
         final TreeClock.Fork fork = ticked.fork();
-        assertEquals(ticked, TreeClock.merge(fork.left, fork.right));
+        assertEquals(ticked, fork.left.mergeId(fork.right));
     }
 
     @Test
     public void testMergeForkedTicked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertEquals(1L, TreeClock.merge(fork.left.tick(), fork.right).ticks());
+        assertEquals(1L, fork.left.tick().mergeId(fork.right).ticks());
     }
 
     @Test
     public void testMergeForkedTickedTicked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertEquals(2L, TreeClock.merge(fork.left.tick(), fork.right.tick()).ticks());
+        assertEquals(1L, fork.left.tick().mergeId(fork.right.tick()).ticks());
     }
 
     @Test
@@ -155,7 +183,8 @@ public class TreeClockTest
         final TreeClock clock1 = fork1.left.tick();
         final TreeClock clock3 = fork2.right.tick();
 
-        assertEquals(2L, TreeClock.merge(clock1, clock3).ticks());
+        assertEquals(1L, clock1.mergeId(clock3).ticks());
+        assertEquals(2L, clock1.update(clock3).mergeId(clock3).ticks());
     }
 
     @Test
@@ -168,8 +197,8 @@ public class TreeClockTest
         final TreeClock clock2 = fork2.left.tick();
         final TreeClock clock3 = fork2.right.tick();
 
-        final TreeClock clock4 = TreeClock.merge(clock1, clock3);
-        final TreeClock clock5 = TreeClock.merge(clock2, clock4);
+        final TreeClock clock4 = clock1.update(clock3).mergeId(clock3);
+        final TreeClock clock5 = clock2.update(clock4).mergeId(clock4);
 
         assertEquals(3L, clock5.ticks());
     }

@@ -1,6 +1,6 @@
 package org.example;
 
-import org.m_ld.clocks.vector.SyncLocalVectorClock;
+import org.m_ld.clocks.vector.SyncVectorClockMessageService;
 import org.m_ld.clocks.vector.VectorClock;
 
 import java.util.UUID;
@@ -9,6 +9,6 @@ public class VectorClockOrSetProcessTest extends OrSetProcessTest<VectorClock<UU
 {
     public OrSetProcess<VectorClock<UUID>, Integer> createProcess()
     {
-        return new OrSetProcess<>(new SyncLocalVectorClock<>(UUID.randomUUID()));
+        return new OrSetProcess<>(new SyncVectorClockMessageService<>(UUID.randomUUID()));
     }
 }

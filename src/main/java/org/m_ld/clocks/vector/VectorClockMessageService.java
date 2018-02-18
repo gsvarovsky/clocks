@@ -23,7 +23,7 @@ import static org.m_ld.clocks.vector.WireVectorClock.clock;
  * <li>no Byzantine behaviour</li>
  * </ul>
  */
-public abstract class LocalVectorClock<PID> extends MessageService<VectorClock<PID>> implements VectorClock<PID>
+public abstract class VectorClockMessageService<PID> extends MessageService<VectorClock<PID>> implements VectorClock<PID>
 {
     @Override
     public VectorClock<PID> peek()
