@@ -49,19 +49,19 @@ public abstract class MessageService<T>
     /**
      * @return an immutable snapshot of metadata suitable for attachment to a message.
      */
-    public abstract T peek();
+    protected abstract T peek();
 
     /**
      * Adds a new event, i.e. increments local process clock value
      */
-    public abstract void event();
+    protected abstract void event();
 
     /**
      * Merges the given metadata into our local state
      *
      * @param metadata the new metadata to merge
      */
-    public abstract void join(T metadata);
+    protected abstract void join(T metadata);
 
     /**
      * The basic determinant of whether we can deliver a message with the given metadata.

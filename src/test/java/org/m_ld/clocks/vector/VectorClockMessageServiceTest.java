@@ -80,9 +80,9 @@ public class VectorClockMessageServiceTest
         final LinkedList<Message<VectorClock<String>, Integer>> buffer1 = new LinkedList<>(),
             buffer2 = new LinkedList<>(), buffer3 = new LinkedList<>();
 
-        final MessageService<VectorClock<String>> p1Clock = new SyncVectorClockMessageService<>("P1");
-        final MessageService<VectorClock<String>> p2Clock = new SyncVectorClockMessageService<>("P2");
-        final MessageService<VectorClock<String>> p3Clock = new SyncVectorClockMessageService<>("P3");
+        final SyncVectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final SyncVectorClockMessageService<String> p2Clock = new SyncVectorClockMessageService<>("P2");
+        final SyncVectorClockMessageService<String> p3Clock = new SyncVectorClockMessageService<>("P3");
 
         p2Sum.addAndGet(1);
         final Message<VectorClock<String>, Integer> m2 = message(p2Clock.send(), 1);
