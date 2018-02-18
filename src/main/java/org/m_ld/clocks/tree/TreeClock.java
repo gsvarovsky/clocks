@@ -137,37 +137,37 @@ public class TreeClock
         }
     }
 
-    public TreeClock merge(TreeClock other)
+    public static TreeClock merge(TreeClock tc1, TreeClock tc2)
     {
-        if (isId)
+        if (tc1.isId)
         {
-            if (other.isId)
+            if (tc2.isId)
                 throw new IllegalArgumentException("Trying to merge with overlapping clock");
-            return this;
+            return tc1;
         }
-        else if (other.isId)
+        else if (tc2.isId)
         {
-            return other;
+            return tc2;
         }
         else
         {
-            final long sum = ticks + other.ticks;
-            if (fork != null && other.fork != null)
+            final long max = Math.max(tc1.ticks, tc2.ticks);
+            if (tc1.fork != null && tc2.fork != null)
             {
-                final TreeClock leftResult = fork.left.merge(other.fork.left),
-                    rightResult = fork.right.merge(other.fork.right);
-                if (leftResult.isId && rightResult.isId)
+                final TreeClock left = merge(tc1.fork.left, tc2.fork.left),
+                    right = merge(tc1.fork.right, tc2.fork.right);
+                if (left.isId && right.isId)
                 {
-                    return new TreeClock(true, sum + leftResult.ticks() + rightResult.ticks(), null);
+                    return new TreeClock(true, max + left.ticks() + right.ticks(), null);
                 }
                 else
                 {
-                    return new TreeClock(false, sum, new Fork(leftResult, rightResult));
+                    return new TreeClock(false, max, new Fork(left, right));
                 }
             }
             else
             {
-                return new TreeClock(false, sum, fork == null ? other.fork : fork);
+                return new TreeClock(false, max, tc1.fork == null ? tc2.fork : tc1.fork);
             }
         }
     }
