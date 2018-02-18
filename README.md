@@ -3,7 +3,7 @@
 # clocks
 _ordered message delivery_
 
-Foundational classes for establishing ordered delivery of messages to concurrent processes, with Vector Clock and Interval Tree Clock implementations and process examples.
+Foundational classes for establishing ordered delivery of messages to concurrent processes, with Vector Clock and Tree Clock implementations and process examples.
 
 **[Feedback](https://github.com/gsvarovsky/clocks/issues) and contributions welcome!**
 

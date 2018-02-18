@@ -19,12 +19,12 @@ import static org.m_ld.clocks.vector.WireVectorClock.clock;
  * Note that integer sum is a CRDT that does not require causal delivery,
  * so the data used in these tests are simply to give the processes some state and provide a weak cross-check.
  */
-public class LocalVectorClockTest
+public class VectorClockMessageServiceTest
 {
     @Test
     public void testFirstMessageSend()
     {
-        final LocalVectorClock<String> p1Clock = new SyncLocalVectorClock<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
         p1Clock.send();
         assertEquals(1L, (long) p1Clock.vector().get("P1"));
     }
@@ -32,7 +32,7 @@ public class LocalVectorClockTest
     @Test
     public void testFirstMessageReceive()
     {
-        final LocalVectorClock<String> p1Clock = new SyncLocalVectorClock<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
         final List<String> data = new ArrayList<>();
         p1Clock.receive(message(clock("P2", 2L), "1"), new LinkedList<>(), data::add);
 
@@ -44,7 +44,7 @@ public class LocalVectorClockTest
     @Test
     public void testFirstMessageBuffer()
     {
-        final LocalVectorClock<String> p1Clock = new SyncLocalVectorClock<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
         final List<String> data = new ArrayList<>();
         final LinkedList<Message<VectorClock<String>, String>> buffer = new LinkedList<>();
         p1Clock.receive(message(clock("P2", 2L).with("P3", 1L), "2"),
@@ -59,7 +59,7 @@ public class LocalVectorClockTest
     @Test
     public void testFirstMessageUnbuffer()
     {
-        final LocalVectorClock<String> p1Clock = new SyncLocalVectorClock<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
         final List<String> data = new ArrayList<>();
         final LinkedList<Message<VectorClock<String>, String>> buffer = new LinkedList<>();
         p1Clock.receive(message(clock("P2", 2L).with("P3", 1L), "2"),
@@ -80,9 +80,9 @@ public class LocalVectorClockTest
         final LinkedList<Message<VectorClock<String>, Integer>> buffer1 = new LinkedList<>(),
             buffer2 = new LinkedList<>(), buffer3 = new LinkedList<>();
 
-        final MessageService<VectorClock<String>> p1Clock = new SyncLocalVectorClock<>("P1");
-        final MessageService<VectorClock<String>> p2Clock = new SyncLocalVectorClock<>("P2");
-        final MessageService<VectorClock<String>> p3Clock = new SyncLocalVectorClock<>("P3");
+        final MessageService<VectorClock<String>> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final MessageService<VectorClock<String>> p2Clock = new SyncVectorClockMessageService<>("P2");
+        final MessageService<VectorClock<String>> p3Clock = new SyncVectorClockMessageService<>("P3");
 
         p2Sum.addAndGet(1);
         final Message<VectorClock<String>, Integer> m2 = message(p2Clock.send(), 1);
@@ -114,9 +114,9 @@ public class LocalVectorClockTest
         final LinkedList<Message<VectorClock<String>, Integer>> buffer1 = new LinkedList<>(),
             buffer2 = new LinkedList<>(), buffer3 = new LinkedList<>();
 
-        final MessageService<VectorClock<String>> p1Clock = new SyncLocalVectorClock<>("P1");
-        final MessageService<VectorClock<String>> p2Clock = new SyncLocalVectorClock<>("P2");
-        final MessageService<VectorClock<String>> p3Clock = new SyncLocalVectorClock<>("P3");
+        final MessageService<VectorClock<String>> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final MessageService<VectorClock<String>> p2Clock = new SyncVectorClockMessageService<>("P2");
+        final MessageService<VectorClock<String>> p3Clock = new SyncVectorClockMessageService<>("P3");
 
         p1Sum.addAndGet(1);
         final Message<VectorClock<String>, Integer> m1 = message(p1Clock.send(), 1);
