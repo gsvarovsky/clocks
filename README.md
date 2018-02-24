@@ -27,3 +27,5 @@ Two `MessageService` implementations are provided: a [Vector Clock service](src/
 * GitHub, _Voldemort is a distributed key-value storage system_, https://github.com/voldemort/voldemort/blob/master/src/java/voldemort/versioning/VectorClock.java
 * GitHub, _A ShiViz-compatible logging library for Java_, https://github.com/DistributedClocks/JVector/blob/master/jvec/org/github/com/jvec/vclock/VClock.java
 * GitHub, _Java implementation of a multicast-chat_, https://github.com/matteotiziano/multicast-chat/blob/master/src/model/VectorClock.java
+* GitHub, _An Implementation of Interval Tree Clock_, https://github.com/sinabz/itc4j
+* GitHub, _A Logical Clock for Static and Dynamic Systems_, https://github.com/ricardobcl/Interval-Tree-Clocks

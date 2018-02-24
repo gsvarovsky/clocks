@@ -105,7 +105,7 @@ public class TreeClock
 
     /**
      * @return a new tree clock with this clock's process identity and one additional tick; thus,
-     * <code>this.tick().ticks() = this.tick() + 1</code>
+     * <code>this.tick().ticks() == this.ticks() + 1</code>
      */
     public TreeClock tick()
     {
