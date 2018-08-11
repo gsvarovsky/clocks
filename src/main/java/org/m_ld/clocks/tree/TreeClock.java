@@ -1,5 +1,6 @@
 package org.m_ld.clocks.tree;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -20,8 +21,10 @@ import static java.util.stream.Collectors.toList;
  * <p>
  * This implementation is immutable and so thread-safe.
  */
-public class TreeClock
+public class TreeClock implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private final boolean isId;
     private final long ticks;
     private final Fork fork;
@@ -29,8 +32,10 @@ public class TreeClock
     /**
      * An immutable pair of related clocks
      */
-    public static class Fork
+    public static class Fork implements Serializable
     {
+        private static final long serialVersionUID = 1L;
+
         public final TreeClock left, right;
 
         private Fork(TreeClock left, TreeClock right)
