@@ -1,19 +1,25 @@
 package org.m_ld.clocks;
 
-public interface Message<M, D>
+public interface Message<C, D>
 {
-    M metadata();
+    /**
+     * Message time according to some clock
+     */
+    C time();
 
+    /**
+     * Message data to be delivered to a process
+     */
     D data();
 
-    static <M, D> Message<M, D> message(M metadata, D data)
+    static <M, D> Message<M, D> message(M time, D data)
     {
         return new Message<M, D>()
         {
             @Override
-            public M metadata()
+            public M time()
             {
-                return metadata;
+                return time;
             }
 
             @Override

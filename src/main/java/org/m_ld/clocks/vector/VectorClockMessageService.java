@@ -18,7 +18,7 @@ import static org.m_ld.clocks.vector.WireVectorClock.clock;
  *     Concurrent and Distributed Systems 2009–10, Process groups and message ordering</a>):<ul>
  * <li>messages are multicast to named process groups</li>
  * <li>reliable channels: a given message is delivered reliably to all members of the group</li>
- * <li>FIFO from a given source to a given destination FIFO from a given source to a given destination</li>
+ * <li>FIFO from a given source to a given destination</li>
  * <li>processes don’t crash (failure and restart not considered)</li>
  * <li>no Byzantine behaviour</li>
  * </ul>

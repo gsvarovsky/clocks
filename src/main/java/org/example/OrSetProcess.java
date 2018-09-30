@@ -13,10 +13,10 @@ import static org.example.OrSetProcess.OrSetOperation.Type.REMOVE;
 
 /**
  * A very inefficient example implementation of the OR-Set CRDT as a process.
- * @param <M> the message metadata type. Must guarantee causal ordering
+ * @param <C> the message clock type. Must guarantee causal ordering
  * @param <E> the set element type
  */
-public class OrSetProcess<M, E> extends CausalCrdtProcess<M, OrSetProcess.OrSetOperation<E>>
+public class OrSetProcess<C, E> extends CausalCrdtProcess<C, OrSetProcess.OrSetOperation<E>>
 {
     final Map<E, Set<Object>> elementIds = new HashMap<>();
 
@@ -40,18 +40,18 @@ public class OrSetProcess<M, E> extends CausalCrdtProcess<M, OrSetProcess.OrSetO
 
     }
 
-    public OrSetProcess(MessageService<M> messageService)
+    public OrSetProcess(MessageService<C> messageService)
     {
         super(messageService);
     }
 
-    public synchronized List<Message<M, OrSetOperation<E>>> add(E element)
+    public synchronized List<Message<C, OrSetOperation<E>>> add(E element)
     {
         return elementIds.containsKey(element) ? emptyList() :
             singletonList(update(new OrSetOperation<>(ADD, UUID.randomUUID(), element)));
     }
 
-    public synchronized List<Message<M, OrSetOperation<E>>> remove(E element)
+    public synchronized List<Message<C, OrSetOperation<E>>> remove(E element)
     {
         return !elementIds.containsKey(element) ? emptyList() :
             elementIds.get(element).stream()

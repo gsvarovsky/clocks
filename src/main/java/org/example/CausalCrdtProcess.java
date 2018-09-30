@@ -12,14 +12,14 @@ import static org.m_ld.clocks.Message.message;
  * In reality this is more likely to be a framework class such as an Actor or Verticle.
  *
  * @param <O> an operation type for an operation-based CRDT which requires causal delivery
- * @param <M> the message metadata type for this process
+ * @param <C> the message clock type for this process
  */
-public abstract class CausalCrdtProcess<M, O>
+public abstract class CausalCrdtProcess<C, O>
 {
-    private final MessageService<M> messageService;
-    private final LinkedList<Message<M, O>> buffer = new LinkedList<>();
+    private final MessageService<C> messageService;
+    private final LinkedList<Message<C, O>> buffer = new LinkedList<>();
 
-    public CausalCrdtProcess(MessageService<M> messageService)
+    public CausalCrdtProcess(MessageService<C> messageService)
     {
         this.messageService = messageService;
     }
@@ -37,7 +37,7 @@ public abstract class CausalCrdtProcess<M, O>
      * @param operation an operation to perform on the CRDT
      * @return A Message suitable to be sent to other replicas of the CRDT
      */
-    public synchronized Message<M, O> update(O operation)
+    public synchronized Message<C, O> update(O operation)
     {
         merge(operation);
         return message(messageService.send(), operation);
@@ -48,7 +48,7 @@ public abstract class CausalCrdtProcess<M, O>
      *
      * @param message the message containing an operation to apply to the CRDT
      */
-    public synchronized void receive(Message<M, O> message)
+    public synchronized void receive(Message<C, O> message)
     {
         if (!messageService.receive(message, buffer, this::merge))
             throw new IllegalStateException("Buffer overload");
