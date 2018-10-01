@@ -227,6 +227,35 @@ public class TreeClock implements Serializable
         }
     }
 
+    /**
+     * Are any of the ticks for this clock less than the equivalent ticks for the other clock?
+     *
+     * @param other another clock
+     * @param forId {@code true} to compare ticks for the clocks' merged process identity;
+     * {@code false} for all other process identities (like an inverse)
+     * @return {@code true} if any of the ticks for this clock are less than the ticks for the other clock.
+     */
+    public boolean anyLt(TreeClock other, Boolean forId)
+    {
+        if (fork == null || other.fork == null)
+        {
+            if (forId == null || forId.equals(isId || other.isId))
+            {
+                // If we're looking for IDs then count every sub-tree because one of us is an ID
+                final Boolean ticksForId = forId == null || forId ? null : false;
+                return ticks(ticksForId) < other.ticks(ticksForId);
+            }
+            else
+            {
+                return false; // Either is an ID but we don't want IDs, or both not IDs and we want IDs
+            }
+        }
+        else
+        {
+            return fork.left.anyLt(other.fork.left, forId) || fork.right.anyLt(other.fork.right, forId);
+        }
+    }
+
     @Override
     public boolean equals(Object o)
     {

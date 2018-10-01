@@ -202,4 +202,71 @@ public class TreeClockTest
 
         assertEquals(3L, clock5.ticks());
     }
+
+    @Test
+    public void testLtIdGenesisSelf()
+    {
+        assertFalse(TreeClock.GENESIS.anyLt(TreeClock.GENESIS, true));
+    }
+
+    @Test
+    public void testLtNonIdGenesisSelf()
+    {
+        assertFalse(TreeClock.GENESIS.anyLt(TreeClock.GENESIS, false));
+    }
+
+    @Test
+    public void testLtIdForked()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        assertFalse(fork.left.anyLt(fork.right, true));
+    }
+
+    @Test
+    public void testLtNonIdForked()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        assertFalse(fork.left.anyLt(fork.right, false));
+    }
+
+    @Test
+    public void testLtIdForkedTicked()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        assertTrue(fork.left.anyLt(fork.right.tick(), true));
+    }
+
+    @Test
+    public void testLtNonIdForkedTicked()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        assertFalse(fork.left.anyLt(fork.right.tick(), false));
+    }
+
+    @Test
+    public void testLtNonIdTwiceForkedTicked()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        final TreeClock.Fork rightFork = fork.right.fork();
+        assertTrue(fork.left.anyLt(rightFork.left.update(rightFork.right.tick()), false));
+    }
+
+    @Test
+    public void testLtNonIdThriceForkedTicked()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        final TreeClock.Fork rightFork = fork.right.fork();
+        final TreeClock.Fork leftFork = fork.left.fork();
+        assertTrue(leftFork.left.anyLt(rightFork.left.update(rightFork.right.tick()), false));
+    }
+
+    @Test
+    public void testLtNonIdCompensatingTicks()
+    {
+        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
+        final TreeClock.Fork rightFork = fork.right.fork();
+        final TreeClock.Fork leftFork = fork.left.fork();
+        assertTrue(leftFork.left.update(leftFork.right.tick())
+                       .anyLt(rightFork.left.update(rightFork.right.tick()), false));
+    }
 }

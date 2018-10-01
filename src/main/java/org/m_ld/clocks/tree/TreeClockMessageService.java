@@ -34,13 +34,11 @@ public class TreeClockMessageService extends MessageService<TreeClock>
     }
 
     @Override
-    public synchronized boolean readyFor(TreeClock metadata)
+    public synchronized boolean readyFor(TreeClock senderClock)
     {
         // do the sender and receiver agree on the state of all other processes?
         // If the sender has a higher state value for any of these others, the receiver is missing
         // a message so buffer the message
-        final Long senderOtherTicks = localClock.update(metadata).mergeId(metadata).ticks(false);
-        final Long receiverOtherTicks = localClock.mergeId(metadata).ticks(false);
-        return receiverOtherTicks >= senderOtherTicks;
+        return !localClock.anyLt(senderClock.update(localClock), false);
     }
 }
