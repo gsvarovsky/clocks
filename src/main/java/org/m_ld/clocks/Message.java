@@ -27,6 +27,11 @@ public interface Message<C, D>
             {
                 return data;
             }
+
+            @Override public String toString()
+            {
+                return data + " @ " + time;
+            }
         };
     }
 }

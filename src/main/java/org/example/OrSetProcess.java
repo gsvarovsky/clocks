@@ -5,7 +5,6 @@ import org.m_ld.clocks.MessageService;
 
 import java.util.*;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.example.OrSetProcess.OrSetOperation.Type.ADD;
@@ -16,7 +15,7 @@ import static org.example.OrSetProcess.OrSetOperation.Type.REMOVE;
  * @param <C> the message clock type. Must guarantee causal ordering
  * @param <E> the set element type
  */
-public class OrSetProcess<C, E> extends CausalCrdtProcess<C, OrSetProcess.OrSetOperation<E>>
+public class OrSetProcess<C, E> extends CausalCrdtProcess<C, List<OrSetProcess.OrSetOperation<E>>>
 {
     final Map<E, Set<Object>> elementIds = new HashMap<>();
 
@@ -38,6 +37,10 @@ public class OrSetProcess<C, E> extends CausalCrdtProcess<C, OrSetProcess.OrSetO
             this.element = element;
         }
 
+        @Override public String toString()
+        {
+            return type.name() + ": " + element + " (" + id +  ")";
+        }
     }
 
     public OrSetProcess(MessageService<C> messageService)
@@ -45,37 +48,37 @@ public class OrSetProcess<C, E> extends CausalCrdtProcess<C, OrSetProcess.OrSetO
         super(messageService);
     }
 
-    public synchronized List<Message<C, OrSetOperation<E>>> add(E element)
+    public synchronized Optional<Message<C, List<OrSetProcess.OrSetOperation<E>>>> add(E element)
     {
-        return elementIds.containsKey(element) ? emptyList() :
-            singletonList(update(new OrSetOperation<>(ADD, UUID.randomUUID(), element)));
+        return elementIds.containsKey(element) ? Optional.empty() :
+            Optional.of(update(singletonList(new OrSetOperation<>(ADD, UUID.randomUUID(), element))));
     }
 
-    public synchronized List<Message<C, OrSetOperation<E>>> remove(E element)
+    public synchronized Optional<Message<C, List<OrSetOperation<E>>>> remove(E element)
     {
-        return !elementIds.containsKey(element) ? emptyList() :
-            elementIds.get(element).stream()
+        return !elementIds.containsKey(element) ? Optional.empty() :
+            Optional.of(update(elementIds.get(element).stream()
                 .map(id -> new OrSetOperation<>(REMOVE, id, element))
-                .collect(toList()).stream()
-                .map(this::update)
-                .collect(toList());
+                .collect(toList())));
     }
 
     @Override
-    protected void merge(OrSetOperation<E> op)
+    protected void merge(List<OrSetOperation<E>> ops)
     {
-        switch (op.type)
-        {
-            case ADD:
-                elementIds.computeIfAbsent(op.element, e -> new HashSet<>()).add(op.id);
-                break;
-            case REMOVE:
-                final Set ids = elementIds.get(op.element);
-                if (ids != null && ids.remove(op.id))
-                {
-                    if (ids.isEmpty())
-                        elementIds.remove(op.element);
-                }
-        }
+        ops.forEach(op -> {
+            switch (op.type)
+            {
+                case ADD:
+                    elementIds.computeIfAbsent(op.element, e -> new HashSet<>()).add(op.id);
+                    break;
+                case REMOVE:
+                    final Set ids = elementIds.get(op.element);
+                    if (ids != null && ids.remove(op.id))
+                    {
+                        if (ids.isEmpty())
+                            elementIds.remove(op.element);
+                    }
+            }
+        });
     }
 }
