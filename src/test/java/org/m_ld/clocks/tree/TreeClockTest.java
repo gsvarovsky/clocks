@@ -204,69 +204,49 @@ public class TreeClockTest
     }
 
     @Test
-    public void testLtIdGenesisSelf()
+    public void testLtGenesisSelf()
     {
-        assertFalse(TreeClock.GENESIS.anyLt(TreeClock.GENESIS, true));
+        assertFalse(TreeClock.GENESIS.anyLt(TreeClock.GENESIS));
     }
 
     @Test
-    public void testLtNonIdGenesisSelf()
-    {
-        assertFalse(TreeClock.GENESIS.anyLt(TreeClock.GENESIS, false));
-    }
-
-    @Test
-    public void testLtIdForked()
+    public void testLtForked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertFalse(fork.left.anyLt(fork.right, true));
+        assertFalse(fork.left.anyLt(fork.right));
     }
 
     @Test
-    public void testLtNonIdForked()
+    public void testLtForkedTicked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertFalse(fork.left.anyLt(fork.right, false));
+        assertFalse(fork.left.anyLt(fork.right.tick()));
     }
 
     @Test
-    public void testLtIdForkedTicked()
-    {
-        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertTrue(fork.left.anyLt(fork.right.tick(), true));
-    }
-
-    @Test
-    public void testLtNonIdForkedTicked()
-    {
-        final TreeClock.Fork fork = TreeClock.GENESIS.fork();
-        assertFalse(fork.left.anyLt(fork.right.tick(), false));
-    }
-
-    @Test
-    public void testLtNonIdTwiceForkedTicked()
+    public void testLtTwiceForkedTicked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
         final TreeClock.Fork rightFork = fork.right.fork();
-        assertTrue(fork.left.anyLt(rightFork.left.update(rightFork.right.tick()), false));
+        assertTrue(fork.left.anyLt(rightFork.left.update(rightFork.right.tick())));
     }
 
     @Test
-    public void testLtNonIdThriceForkedTicked()
+    public void testLtThriceForkedTicked()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
         final TreeClock.Fork rightFork = fork.right.fork();
         final TreeClock.Fork leftFork = fork.left.fork();
-        assertTrue(leftFork.left.anyLt(rightFork.left.update(rightFork.right.tick()), false));
+        assertTrue(leftFork.left.anyLt(rightFork.left.update(rightFork.right.tick())));
     }
 
     @Test
-    public void testLtNonIdCompensatingTicks()
+    public void testLtCompensatingTicks()
     {
         final TreeClock.Fork fork = TreeClock.GENESIS.fork();
         final TreeClock.Fork rightFork = fork.right.fork();
         final TreeClock.Fork leftFork = fork.left.fork();
         assertTrue(leftFork.left.update(leftFork.right.tick())
-                       .anyLt(rightFork.left.update(rightFork.right.tick()), false));
+                       .anyLt(rightFork.left.update(rightFork.right.tick())));
     }
 }

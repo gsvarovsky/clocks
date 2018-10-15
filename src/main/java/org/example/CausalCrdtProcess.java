@@ -1,5 +1,6 @@
 package org.example;
 
+import org.m_ld.clocks.CausalClock;
 import org.m_ld.clocks.Message;
 import org.m_ld.clocks.MessageService;
 
@@ -14,7 +15,7 @@ import static org.m_ld.clocks.Message.message;
  * @param <O> an operation type for an operation-based CRDT which requires causal delivery
  * @param <C> the message clock type for this process
  */
-public abstract class CausalCrdtProcess<C, O>
+public abstract class CausalCrdtProcess<C extends CausalClock<C>, O>
 {
     private final MessageService<C> messageService;
     private final LinkedList<Message<C, O>> buffer = new LinkedList<>();

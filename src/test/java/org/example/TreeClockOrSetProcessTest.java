@@ -11,6 +11,8 @@ public class TreeClockOrSetProcessTest extends OrSetProcessTest<TreeClock, OrSet
     {
         final TreeClock.Fork fork = previous.fork();
         previous = fork.left;
-        return new OrSetProcess<>(new TreeClockMessageService().init(fork.right));
+        final TreeClockMessageService messageService = new TreeClockMessageService();
+        messageService.reset(fork.right);
+        return new OrSetProcess<>(messageService);
     }
 }

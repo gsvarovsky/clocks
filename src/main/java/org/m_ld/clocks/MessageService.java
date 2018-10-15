@@ -8,17 +8,17 @@ import java.util.function.Consumer;
  * Provides default Message Service functions to maintain delivery with ordering guarantees.
  * <p>
  * The terminology here is after <a href="http://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf">
- *     Interval Tree Clocks: A Logical Clock for Dynamic Systems</a>, see README.md
+ * Interval Tree Clocks: A Logical Clock for Dynamic Systems</a>, see README.md
  *
- * @param <T> The message time type to be used
+ * @param <C> The message clock type to be used
  */
-public abstract class MessageService<T>
+public abstract class MessageService<C extends CausalClock<C>>
 {
     /**
      * Call before sending this clock's state attached to a message.
      * Returns an immutable snapshot of time suitable for attachment to a message.
      */
-    public T send()
+    public C send()
     {
         event();
         return peek();
@@ -28,12 +28,12 @@ public abstract class MessageService<T>
      * Call to process a newly received message from the wire.
      *
      * @param message the message from the wire
-     * @param buffer a buffer for out-of-order messages
+     * @param buffer  a buffer for out-of-order messages
      * @param process the local message consumer, which will receive messages in order
      * @return <code>false</code> iff the buffer is full
      */
-    public <D, M extends Message<T, D>> boolean receive(
-        M message, Queue<M> buffer, Consumer<D> process)
+    public <D, M extends Message<C, D>> boolean receive(
+        M message, Queue<M> buffer, Consumer<? super D> process)
     {
         if (readyFor(message.time()))
         {
@@ -52,12 +52,12 @@ public abstract class MessageService<T>
      * or has already been determined.
      *
      * @param message the message from the wire
-     * @param buffer a buffer of messages that might be caused by the delivered message.
-     *               Must implement {@link Iterator#remove()}.
+     * @param buffer  a buffer of messages that might be caused by the delivered message.
+     *                Must implement {@link Iterator#remove()}.
      * @param process the local message consumer, which will receive messages in order
      */
-    private <D, M extends Message<T, D>> void deliver(
-        M message, Iterable<M> buffer, Consumer<D> process)
+    private <D, M extends Message<C, D>> void deliver(
+        M message, Iterable<M> buffer, Consumer<? super D> process)
     {
         process.accept(message.data());
 
@@ -81,9 +81,17 @@ public abstract class MessageService<T>
     }
 
     /**
+     * Resets the time. Expected to be used once on initialisation; if used otherwise, may cause irrecoverable loss of
+     * causality.
+     *
+     * @param time the time to reset this service to
+     */
+    public abstract void reset(C time);
+
+    /**
      * @return an immutable snapshot of time suitable for attachment to a message.
      */
-    protected abstract T peek();
+    public abstract C peek();
 
     /**
      * Adds a new event, i.e. increments local process clock value
@@ -93,15 +101,21 @@ public abstract class MessageService<T>
     /**
      * Merges the given time into our local state
      *
-     * @param metadata the new time to merge
+     * @param time the new time to merge
      */
-    protected abstract void join(T metadata);
+    protected abstract void join(C time);
 
     /**
      * The basic determinant of whether we can deliver a message with the given time.
      *
-     * @param metadata an incoming message's time
+     * @param senderTime an incoming message's time
      * @return <code>true</code> if our current clock state has all required history for the given time
      */
-    public abstract boolean readyFor(T metadata);
+    private synchronized boolean readyFor(C senderTime)
+    {
+        // do the sender and receiver agree on the state of all other processes?
+        // If the sender has a higher state value for any of these others, the receiver is missing
+        // a message so buffer the message
+        return !peek().anyLt(senderTime);
+    }
 }

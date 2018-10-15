@@ -2,6 +2,7 @@ package org.example;
 
 import org.example.OrSetProcess.OrSetOperation;
 import org.junit.Test;
+import org.m_ld.clocks.CausalClock;
 import org.m_ld.clocks.Message;
 
 import java.util.*;
@@ -16,7 +17,7 @@ import static org.example.OrSetProcess.OrSetOperation.Type.REMOVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public abstract class OrSetProcessTest<C, P extends OrSetProcess<C, Integer>>
+public abstract class OrSetProcessTest<C extends CausalClock<C>, P extends OrSetProcess<C, Integer>>
 {
     public abstract P createProcess();
 

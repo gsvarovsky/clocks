@@ -1,5 +1,6 @@
 package org.example;
 
+import org.m_ld.clocks.CausalClock;
 import org.m_ld.clocks.Message;
 import org.m_ld.clocks.MessageService;
 
@@ -15,7 +16,7 @@ import static org.example.OrSetProcess.OrSetOperation.Type.REMOVE;
  * @param <C> the message clock type. Must guarantee causal ordering
  * @param <E> the set element type
  */
-public class OrSetProcess<C, E> extends CausalCrdtProcess<C, List<OrSetProcess.OrSetOperation<E>>>
+public class OrSetProcess<C extends CausalClock<C>, E> extends CausalCrdtProcess<C, List<OrSetProcess.OrSetOperation<E>>>
 {
     final Map<E, Set<Object>> elementIds = new HashMap<>();
 

@@ -7,38 +7,28 @@ import org.m_ld.clocks.MessageService;
  */
 public class TreeClockMessageService extends MessageService<TreeClock>
 {
-    private TreeClock localClock;
+    private TreeClock localTime;
 
-    public TreeClockMessageService init(TreeClock clock)
+    public void reset(TreeClock time)
     {
-        this.localClock = clock;
-        return this;
+        this.localTime = time;
     }
 
     @Override
     public TreeClock peek()
     {
-        return localClock;
+        return localTime;
     }
 
     @Override
     public synchronized void event()
     {
-        localClock = localClock.tick();
+        localTime = localTime.tick();
     }
 
     @Override
     public synchronized void join(TreeClock metadata)
     {
-        localClock = localClock.update(metadata);
-    }
-
-    @Override
-    public synchronized boolean readyFor(TreeClock senderClock)
-    {
-        // do the sender and receiver agree on the state of all other processes?
-        // If the sender has a higher state value for any of these others, the receiver is missing
-        // a message so buffer the message
-        return !localClock.anyLt(senderClock.update(localClock), false);
+        localTime = localTime.update(metadata);
     }
 }

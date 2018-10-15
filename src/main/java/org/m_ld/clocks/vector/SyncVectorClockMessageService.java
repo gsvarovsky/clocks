@@ -29,4 +29,13 @@ public class SyncVectorClockMessageService<PID> extends VectorClockMessageServic
     {
         return vector;
     }
+
+    @Override public void reset(VectorClock<PID> time)
+    {
+        if (!pid.equals(time.processId()))
+            throw new IllegalArgumentException("Cannot change the process identity of a vector clock");
+
+        vector.clear();
+        vector.putAll(time.vector());
+    }
 }

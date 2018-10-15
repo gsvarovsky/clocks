@@ -1,5 +1,7 @@
 package org.m_ld.clocks.tree;
 
+import org.m_ld.clocks.CausalClock;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -21,10 +23,9 @@ import static java.util.stream.Collectors.toList;
  * <p>
  * This implementation is immutable and so thread-safe.
  */
-public class TreeClock implements Serializable
+public class TreeClock implements CausalClock<TreeClock>, Serializable
 {
     private static final long serialVersionUID = 1L;
-
     private final boolean isId;
     private final long ticks;
     private final Fork fork;
@@ -35,7 +36,6 @@ public class TreeClock implements Serializable
     public static class Fork implements Serializable
     {
         private static final long serialVersionUID = 1L;
-
         public final TreeClock left, right;
 
         private Fork(TreeClock left, TreeClock right)
@@ -49,7 +49,7 @@ public class TreeClock implements Serializable
         @Override
         public boolean equals(Object o)
         {
-            return o instanceof Fork && left.equals(((Fork) o).left) && right.equals(((Fork) o).right);
+            return o instanceof Fork && left.equals(((Fork)o).left) && right.equals(((Fork)o).right);
         }
 
         @Override
@@ -71,7 +71,6 @@ public class TreeClock implements Serializable
      * unless it can guarantee not to ever receive messages from other process groups.
      */
     public static final TreeClock GENESIS = new TreeClock(true, 0, null);
-
     /**
      * A leaf clock with no process identity, used to scrub out IDs when merging and updating.
      */
@@ -88,7 +87,7 @@ public class TreeClock implements Serializable
 
     /**
      * @param forId {@code true} to gather ticks for this clock's process identity;
-     * {@code false} for the union of all other process identities (like an inverse)
+     *              {@code false} for the union of all other process identities (like an inverse)
      * @return ticks for this clock or all other clocks
      */
     public Long ticks(Boolean forId)
@@ -136,6 +135,7 @@ public class TreeClock implements Serializable
      * identities.
      * This clock should normally be discarded, and the process's state replaced with either the left or right
      * of the result. This is because a clock can never be updated from any of its forks.
+     *
      * @return a Fork of this clock
      * @see #update(TreeClock)
      */
@@ -174,6 +174,7 @@ public class TreeClock implements Serializable
     /**
      * Update this clock with another clock's ticks.
      * This method requires that the other clock's process identity does not overlap this one's.
+     *
      * @param other another clock with a non-overlapping process identity, i.e. from a distinct branch
      * @return a clock with this clock's process identity but including the other clock's ticks
      */
@@ -199,6 +200,7 @@ public class TreeClock implements Serializable
      * Merges this clock's process identity with another clock's process identity.
      * This method does <b>not</b> merge in the other clock's ticks. This gives the caller the opportunity
      * to compare merged clocks before and after update.
+     *
      * @param other another clock
      * @return a clock with this clock's ticks and a merged process identity
      */
@@ -231,19 +233,15 @@ public class TreeClock implements Serializable
      * Are any of the ticks for this clock less than the equivalent ticks for the other clock?
      *
      * @param other another clock
-     * @param forId {@code true} to compare ticks for the clocks' merged process identity;
-     * {@code false} for all other process identities (like an inverse)
      * @return {@code true} if any of the ticks for this clock are less than the ticks for the other clock.
      */
-    public boolean anyLt(TreeClock other, Boolean forId)
+    @Override public boolean anyLt(TreeClock other)
     {
         if (fork == null || other.fork == null)
         {
-            if (forId == null || forId.equals(isId || other.isId))
+            if (!isId && !other.isId)
             {
-                // If we're looking for IDs then count every sub-tree because one of us is an ID
-                final Boolean ticksForId = forId == null || forId ? null : false;
-                return ticks(ticksForId) < other.ticks(ticksForId);
+                return ticks(false) < other.ticks(false);
             }
             else
             {
@@ -252,27 +250,24 @@ public class TreeClock implements Serializable
         }
         else
         {
-            return fork.left.anyLt(other.fork.left, forId) || fork.right.anyLt(other.fork.right, forId);
+            return fork.left.anyLt(other.fork.left) || fork.right.anyLt(other.fork.right);
         }
     }
 
-    @Override
-    public boolean equals(Object o)
+    @Override public boolean equals(Object o)
     {
         return o instanceof TreeClock &&
-            isId == ((TreeClock) o).isId &&
-            ticks == ((TreeClock) o).ticks &&
-            Objects.equals(fork, ((TreeClock) o).fork);
+            isId == ((TreeClock)o).isId &&
+            ticks == ((TreeClock)o).ticks &&
+            Objects.equals(fork, ((TreeClock)o).fork);
     }
 
-    @Override
-    public int hashCode()
+    @Override public int hashCode()
     {
         return Objects.hash(isId, ticks, fork);
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "TreeClock " + briefString();
     }
