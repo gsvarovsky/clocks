@@ -33,14 +33,13 @@ public abstract class CausalCrdtProcess<C extends CausalClock<C>, O>
     protected abstract void merge(O operation);
 
     /**
-     * Method for local update of the CRDT with a single operation.
+     * Method to construct a message after a local update of the CRDT.
      *
-     * @param operation an operation to perform on the CRDT
+     * @param operation an operation performed on the CRDT
      * @return A Message suitable to be sent to other replicas of the CRDT
      */
-    public synchronized Message<C, O> update(O operation)
+    protected synchronized Message<C, O> updated(O operation)
     {
-        merge(operation);
         return message(messageService.send(), operation);
     }
 
