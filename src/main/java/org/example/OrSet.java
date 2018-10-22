@@ -4,6 +4,7 @@ import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
+import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
 import static org.example.OrSet.Operation.Type.ADD;
@@ -22,7 +23,7 @@ public class OrSet<E>
     {
         enum Type
         {
-            ADD, REMOVE
+            ADD, REMOVE;
         }
 
         final Operation.Type type;
@@ -31,9 +32,22 @@ public class OrSet<E>
 
         Operation(Operation.Type type, Object id, E element)
         {
+            requireNonNull(type);
+            requireNonNull(id);
+
             this.type = type;
             this.id = id;
             this.element = element;
+        }
+
+        @Override public int hashCode()
+        {
+            return id.hashCode();
+        }
+
+        @Override public boolean equals(Object obj)
+        {
+            return obj instanceof Operation && id.equals(((Operation)obj).id);
         }
 
         @Override public String toString()
@@ -79,5 +93,23 @@ public class OrSet<E>
             }
         });
         return ops;
+    }
+
+    /**
+     * Replaces the content of this OR-Set with a copy of the given one.
+     * Great care should be taken to ensure that any process clocks are synchronised, otherwise this method could
+     * permanently break convergence.
+     */
+    public synchronized void reset(OrSet<E> other)
+    {
+        elementIds.clear();
+        elementIds.putAll(other.elementIds);
+    }
+
+    public static <E> OrSet<E> clone(OrSet<E> orSet)
+    {
+        final OrSet<E> clone = new OrSet<>();
+        clone.reset(orSet);
+        return clone;
     }
 }
