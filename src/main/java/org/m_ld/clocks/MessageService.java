@@ -96,14 +96,14 @@ public abstract class MessageService<C extends CausalClock<C>>
     /**
      * Adds a new event, i.e. increments local process clock value
      */
-    protected abstract void event();
+    public abstract void event();
 
     /**
      * Merges the given time into our local state
      *
      * @param time the new time to merge
      */
-    protected abstract void join(C time);
+    public abstract void join(C time);
 
     /**
      * The basic determinant of whether we can deliver a message with the given time.
