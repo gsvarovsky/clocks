@@ -56,7 +56,7 @@ public abstract class MessageService<C extends CausalClock<C>>
      *                Must implement {@link Iterator#remove()}.
      * @param process the local message consumer, which will receive messages in order
      */
-    private <D, M extends Message<C, D>> void deliver(
+    public <D, M extends Message<C, D>> void deliver(
         M message, Iterable<M> buffer, Consumer<? super D> process)
     {
         process.accept(message.data());
