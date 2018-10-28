@@ -25,15 +25,31 @@ public abstract class MessageService<C extends CausalClock<C>>
     }
 
     /**
+     * Call to process newly received message data from the wire.
+     *
+     * @param message the message from the wire
+     * @param buffer  a buffer for out-of-order messages
+     * @param process the local message data consumer, which will receive message data in order
+     * @return <code>false</code> iff the buffer is full
+     */
+    public <D, M extends Message<C, D>> boolean receive(
+        M message, Queue<M> buffer, Consumer<? super D> process)
+    {
+        return receiveMessage(message, buffer, m -> process.accept(m.data()));
+    }
+
+    /**
      * Call to process a newly received message from the wire.
+     * <p>
+     * This variant supports message recipients who may be journaling messages for themselves.
      *
      * @param message the message from the wire
      * @param buffer  a buffer for out-of-order messages
      * @param process the local message consumer, which will receive messages in order
      * @return <code>false</code> iff the buffer is full
      */
-    public <D, M extends Message<C, D>> boolean receive(
-        M message, Queue<M> buffer, Consumer<? super D> process)
+    public <M extends Message<C, ?>> boolean receiveMessage(
+        M message, Queue<M> buffer, Consumer<? super M> process)
     {
         if (readyFor(message.time()))
         {
@@ -56,10 +72,10 @@ public abstract class MessageService<C extends CausalClock<C>>
      *                Must implement {@link Iterator#remove()}.
      * @param process the local message consumer, which will receive messages in order
      */
-    public <D, M extends Message<C, D>> void deliver(
-        M message, Iterable<M> buffer, Consumer<? super D> process)
+    public <M extends Message<C, ?>> void deliver(
+        M message, Iterable<M> buffer, Consumer<? super M> process)
     {
-        process.accept(message.data());
+        process.accept(message);
 
         join(message.time());
 
