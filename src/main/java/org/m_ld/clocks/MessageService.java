@@ -97,14 +97,6 @@ public abstract class MessageService<C extends CausalClock<C>>
     }
 
     /**
-     * Resets the time. Expected to be used once on initialisation; if used otherwise, may cause irrecoverable loss of
-     * causality.
-     *
-     * @param time the time to reset this service to
-     */
-    public abstract void reset(C time);
-
-    /**
      * @return an immutable snapshot of time suitable for attachment to a message.
      */
     public abstract C peek();

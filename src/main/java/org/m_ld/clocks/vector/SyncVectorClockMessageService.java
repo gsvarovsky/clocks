@@ -3,6 +3,8 @@ package org.m_ld.clocks.vector;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.singletonMap;
+
 /**
  * A {@link VectorClockMessageService} which uses a non-thread-safe {@link HashMap}, to be used
  * in processes that themselves handle thread-safe access to their local clocks.
@@ -14,8 +16,13 @@ public class SyncVectorClockMessageService<PID> extends VectorClockMessageServic
 
     public SyncVectorClockMessageService(PID pid)
     {
+        this(pid, singletonMap(pid, 0L));
+    }
+
+    public SyncVectorClockMessageService(PID pid, Map<PID, Long> vector)
+    {
         this.pid = pid;
-        this.vector.put(pid, 0L);
+        this.vector.putAll(vector);
     }
 
     @Override
@@ -28,14 +35,5 @@ public class SyncVectorClockMessageService<PID> extends VectorClockMessageServic
     public Map<PID, Long> vector()
     {
         return vector;
-    }
-
-    @Override public void reset(VectorClock<PID> time)
-    {
-        if (!pid.equals(time.processId()))
-            throw new IllegalArgumentException("Cannot change the process identity of a vector clock");
-
-        vector.clear();
-        vector.putAll(time.vector());
     }
 }

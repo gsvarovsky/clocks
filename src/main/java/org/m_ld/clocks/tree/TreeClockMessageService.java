@@ -9,9 +9,9 @@ public class TreeClockMessageService extends MessageService<TreeClock>
 {
     private TreeClock localTime;
 
-    public void reset(TreeClock time)
+    public TreeClockMessageService(TreeClock localTime)
     {
-        this.localTime = time;
+        this.localTime = localTime;
     }
 
     @Override

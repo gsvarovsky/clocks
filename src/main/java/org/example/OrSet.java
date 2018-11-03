@@ -23,7 +23,7 @@ public class OrSet<E>
     {
         enum Type
         {
-            ADD, REMOVE;
+            ADD, REMOVE
         }
 
         final Operation.Type type;
@@ -106,10 +106,10 @@ public class OrSet<E>
         elementIds.putAll(other.elementIds);
     }
 
-    public static <E> OrSet<E> clone(OrSet<E> orSet)
+    public OrSet<E> copy()
     {
         final OrSet<E> clone = new OrSet<>();
-        clone.reset(orSet);
+        clone.reset(this);
         return clone;
     }
 }
