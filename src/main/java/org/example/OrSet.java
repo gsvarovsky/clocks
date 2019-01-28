@@ -15,7 +15,7 @@ import static org.example.OrSet.Operation.Type.REMOVE;
  *
  * @param <E> the set element type
  */
-public class OrSet<E>
+public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
 {
     private final Map<E, Set<Object>> elementIds = new HashMap<>();
 

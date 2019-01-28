@@ -15,6 +15,7 @@ import java.util.Set;
  * @param <E> the set element type
  */
 public class OrSetProcess<C extends CausalClock<C>, E> extends CausalCrdtProcess<C, List<OrSet.Operation<E>>>
+    implements SetProxy<E, Optional<Message<C, List<OrSet.Operation<E>>>>>
 {
     private final OrSet<E> orSet = new OrSet<>();
 

@@ -6,7 +6,6 @@ import org.m_ld.clocks.Message;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptySet;
@@ -65,77 +64,52 @@ public abstract class OrSetProcessTest<C extends CausalClock<C>, P extends OrSet
     @Test
     public void testPandemonium() throws InterruptedException
     {
-        final int processCount = 5, iterationTarget = 50, tickMillis = 10;
-        final Set<P> processes =
-            Stream.generate(this::createProcess).limit(processCount).collect(toSet());
+        final Set<P> processes = Stream.generate(this::createProcess).limit(5).collect(toSet());
         final Map<P, Map<P, Queue<Message<C, List<OrSet.Operation<Integer>>>>>> channels = new HashMap<>();
-        final Timer timer = new Timer("Pandemonium");
-        final Random random = new Random(); // Happy with contention here
-        // Every iteration for every process produces one ProcessTask#run and (processCount - 1) ProcessTask#Deliver
-        final CountDownLatch done = new CountDownLatch(processCount * processCount * iterationTarget);
 
-        class ProcessTask extends TimerTask
+        new ConvergenceTest<P, Integer, Optional<Message<C, List<OrSet.Operation<Integer>>>>>(processes, processes.size())
         {
-            private final P process;
-            private final int iteration;
-
-            private ProcessTask(P process, int iteration)
-            {
-                this.process = process;
-                this.iteration = iteration;
-            }
-
             @Override
-            public void run()
+            protected OperationSpec<Integer, Optional<Message<C, List<OrSet.Operation<Integer>>>>> operationSpec(
+                P setProxy)
             {
-                // Every iteration make a random decision whether to add or remove from the set, favouring add
-                if (process.elements().isEmpty() || random.nextDouble() * 3 - 2/*(-2..1]*/ < 0)
-                    process.add(random.nextInt()).ifPresent(this::send);
-                else
-                    process.remove(randomElement()).ifPresent(this::send);
-
-                if (iteration < iterationTarget)
-                    timer.schedule(new ProcessTask(process, iteration + 1), random.nextInt(tickMillis));
-
-                done.countDown();
-            }
-
-            private void send(Message<C, List<OrSet.Operation<Integer>>> message)
-            {
-                // Send the messages to all the processes except us at random intervals
-                processes.forEach(otherProcess -> {
-                    if (otherProcess != process)
+                return new OperationSpec<Integer, Optional<Message<C, List<OrSet.Operation<Integer>>>>>()
+                {
+                    @Override public Integer randomNewElement()
                     {
-                        final Queue<Message<C, List<OrSet.Operation<Integer>>>> channel = channelTo(otherProcess);
-                        channel.add(message);
-                        timer.schedule(new TimerTask()
-                        {
-                            @Override public void run()
-                            {
-                                otherProcess.receive(channel.poll());
-                                done.countDown();
-                            }
-                        }, random.nextInt(tickMillis));
+                        return random.nextInt();
                     }
-                });
-            }
 
-            private Queue<Message<C, List<OrSet.Operation<Integer>>>> channelTo(P otherProcess)
-            {
-                return channels.computeIfAbsent(process, p -> new HashMap<>())
-                    .computeIfAbsent(otherProcess, p -> new ConcurrentLinkedQueue<>());
-            }
+                    @Override public void send(Optional<Message<C, List<OrSet.Operation<Integer>>>> operation)
+                    {
+                        operation.ifPresent(message -> {
+                            // Send the messages to all the processes except us at random intervals
+                            processes.forEach(otherProcess -> {
+                                if (otherProcess != setProxy)
+                                {
+                                    final Queue<Message<C, List<OrSet.Operation<Integer>>>> channel = channelTo(otherProcess);
+                                    channel.add(message);
+                                    timer.schedule(new TimerTask()
+                                    {
+                                        @Override public void run()
+                                        {
+                                            otherProcess.receive(channel.poll());
+                                            done.countDown();
+                                        }
+                                    }, random.nextInt(tickMillis));
+                                }
+                            });
+                        });
+                    }
 
-            private Integer randomElement()
-            {
-                return process.elements().stream()
-                    .skip(random.nextInt(process.elements().size()))
-                    .findFirst().orElseThrow(AssertionError::new);
+                    private Queue<Message<C, List<OrSet.Operation<Integer>>>> channelTo(P otherProcess)
+                    {
+                        return channels.computeIfAbsent(setProxy, p -> new HashMap<>())
+                            .computeIfAbsent(otherProcess, p -> new ConcurrentLinkedQueue<>());
+                    }
+                };
             }
-        }
-
-        processes.forEach(p -> timer.schedule(new ProcessTask(p, 1), random.nextInt(tickMillis)));
-        done.await();
+        }.run();
 
         assertNotNull(processes.stream().reduce((p1, p2) -> {
             assertEquals(p1.elements(), p2.elements());
