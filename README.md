@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/gsvarovsky/clocks.svg?branch=master)](https://travis-ci.org/gsvarovsky/clocks)
+![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 
 # clocks
 _ordered message delivery_
