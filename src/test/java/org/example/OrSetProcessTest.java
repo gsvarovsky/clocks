@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.RandomSetProxyIteration.RandomIntegerSetProxyIteration;
 import org.junit.Test;
 import org.m_ld.clocks.CausalClock;
 import org.m_ld.clocks.Message;
@@ -67,27 +68,23 @@ public abstract class OrSetProcessTest<C extends CausalClock<C>, P extends OrSet
         final Set<P> processes = Stream.generate(this::createProcess).limit(5).collect(toSet());
         final Map<P, Map<P, Queue<Message<C, List<OrSet.Operation<Integer>>>>>> channels = new HashMap<>();
 
-        new ConvergenceTest<P, Integer, Optional<Message<C, List<OrSet.Operation<Integer>>>>>(processes, processes.size())
+        // Every iteration for every process produces one ProcessTask#run and (processCount - 1) ProcessTask#Deliver
+        new ConvergenceTest<P>(processes, processes.size())
         {
-            @Override
-            protected OperationSpec<Integer, Optional<Message<C, List<OrSet.Operation<Integer>>>>> operationSpec(
-                P setProxy)
+            @Override protected Runnable iteration(P process)
             {
-                return new OperationSpec<Integer, Optional<Message<C, List<OrSet.Operation<Integer>>>>>()
+                return new RandomIntegerSetProxyIteration<P, Optional<Message<C, List<OrSet.Operation<Integer>>>>>(
+                    process, random)
                 {
-                    @Override public Integer randomNewElement()
-                    {
-                        return random.nextInt();
-                    }
-
                     @Override public void send(Optional<Message<C, List<OrSet.Operation<Integer>>>> operation)
                     {
                         operation.ifPresent(message -> {
                             // Send the messages to all the processes except us at random intervals
                             processes.forEach(otherProcess -> {
-                                if (otherProcess != setProxy)
+                                if (otherProcess != process)
                                 {
-                                    final Queue<Message<C, List<OrSet.Operation<Integer>>>> channel = channelTo(otherProcess);
+                                    final Queue<Message<C, List<OrSet.Operation<Integer>>>> channel =
+                                        channelTo(otherProcess);
                                     channel.add(message);
                                     timer.schedule(new TimerTask()
                                     {
@@ -104,7 +101,7 @@ public abstract class OrSetProcessTest<C extends CausalClock<C>, P extends OrSet
 
                     private Queue<Message<C, List<OrSet.Operation<Integer>>>> channelTo(P otherProcess)
                     {
-                        return channels.computeIfAbsent(setProxy, p -> new HashMap<>())
+                        return channels.computeIfAbsent(process, p -> new HashMap<>())
                             .computeIfAbsent(otherProcess, p -> new ConcurrentLinkedQueue<>());
                     }
                 };
