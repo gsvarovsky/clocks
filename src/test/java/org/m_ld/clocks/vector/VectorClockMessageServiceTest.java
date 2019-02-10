@@ -137,4 +137,16 @@ public class VectorClockMessageServiceTest
         assertEquals(3, p2Sum.get());
         assertEquals(3, p3Sum.get());
     }
+
+    @Test
+    public void testDeliverDoesNotIncrement()
+    {
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final List<String> data = new ArrayList<>();
+        p1Clock.deliver(message(clock("P2", 2L), "1"), new LinkedList<>(), m -> data.add(m.data()));
+
+        assertEquals(0L, (long) p1Clock.vector().get("P1"));
+        assertEquals(2L, (long) p1Clock.vector().get("P2"));
+        assertEquals(singletonList("1"), data);
+    }
 }

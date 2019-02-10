@@ -17,7 +17,7 @@ public interface VectorClock<PID> extends CausalClock<VectorClock<PID>>
     Map<PID, Long> vector();
 
     /**
-     * Obtains the ticks for a process. If the process is unknown, the default return value of <code>-1</code>
+     * Obtains the ticks for a process. If the process is unknown, the default return value of {@code 0}
      * indicates that all messages relating to that process should be buffered until a message arrives which originated
      * from it, thus providing its initial state.
      * @param pid a Process ID
@@ -25,7 +25,7 @@ public interface VectorClock<PID> extends CausalClock<VectorClock<PID>>
      */
     default long ticks(PID pid)
     {
-        return vector().getOrDefault(pid, -1L);
+        return vector().getOrDefault(pid, 0L);
     }
 
     @Override default boolean anyLt(VectorClock<PID> other)

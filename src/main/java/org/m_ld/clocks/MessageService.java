@@ -53,6 +53,8 @@ public abstract class MessageService<C extends CausalClock<C>>
     {
         if (readyFor(message.time()))
         {
+            // increment receiving process’s state value in its local vector
+            event();
             deliver(message, buffer, process);
             return true;
         }
@@ -66,6 +68,9 @@ public abstract class MessageService<C extends CausalClock<C>>
      * Call to deliver a message from the wire, irrespective of whether the service
      * is ready for them. Use to deliver messages for which the cause is not important
      * or has already been determined.
+     * <p>
+     * Calling this method does not increment the process clock, unless buffered causal
+     * messages are also delivered as a result.
      *
      * @param message the message from the wire
      * @param buffer  a buffer of messages that might be caused by the delivered message.
@@ -79,9 +84,6 @@ public abstract class MessageService<C extends CausalClock<C>>
 
         join(message.time());
 
-        // increment receiving process’s state value in its local vector
-        event();
-
         // reconsider buffered messages
         for (Iterator<M> bufferIter = buffer.iterator(); bufferIter.hasNext(); )
         {
@@ -89,6 +91,8 @@ public abstract class MessageService<C extends CausalClock<C>>
             if (readyFor(next.time()))
             {
                 bufferIter.remove();
+                // increment receiving process’s state value in its local vector
+                event();
                 // Recurse to start the iteration again on the modified buffer
                 deliver(next, buffer, process);
                 break;
