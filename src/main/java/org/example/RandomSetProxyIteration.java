@@ -5,8 +5,8 @@ import java.util.Set;
 
 public abstract class RandomSetProxyIteration<P extends SetProxy<E, O>, E, O> implements Runnable
 {
-    final P process;
-    final Random random;
+    protected final Random random;
+    protected P process;
 
     public RandomSetProxyIteration(P process, Random random)
     {
