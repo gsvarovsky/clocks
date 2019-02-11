@@ -103,7 +103,7 @@ public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
     public synchronized void reset(OrSet<E> other)
     {
         elementIds.clear();
-        elementIds.putAll(other.elementIds);
+        other.elementIds.forEach((element, ids) -> elementIds.put(element, new HashSet<>(ids)));
     }
 
     public OrSet<E> copy()
