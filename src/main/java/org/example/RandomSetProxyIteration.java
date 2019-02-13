@@ -31,6 +31,16 @@ public abstract class RandomSetProxyIteration<P extends SetProxy<E, O>, E, O> im
             send(process.remove(randomElement(elements)));
     }
 
+    public P getProcess()
+    {
+        return process;
+    }
+
+    public void setProcess(P process)
+    {
+        this.process = process;
+    }
+
     private E randomElement(Set<E> elements)
     {
         return elements.stream()

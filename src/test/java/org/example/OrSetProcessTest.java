@@ -69,44 +69,31 @@ public abstract class OrSetProcessTest<C extends CausalClock<C>, P extends OrSet
         final Map<P, Map<P, Queue<Message<C, List<OrSet.Operation<Integer>>>>>> channels = new HashMap<>();
 
         // Every iteration for every process produces one ProcessTask#run and (processCount - 1) ProcessTask#Deliver
-        new ConvergenceTest<P>(processes, processes.size())
+        final ConvergenceTest convergenceTest = new ConvergenceTest(processes.size(), processes.size());
+        convergenceTest.run(processes.stream().map(process -> new RandomIntegerSetProxyIteration<P,
+            Optional<Message<C, List<OrSet.Operation<Integer>>>>>(process, convergenceTest.random())
         {
-            @Override protected Runnable iteration(P process)
+            @Override public void send(Optional<Message<C, List<OrSet.Operation<Integer>>>> operation)
             {
-                return new RandomIntegerSetProxyIteration<P, Optional<Message<C, List<OrSet.Operation<Integer>>>>>(
-                    process, random)
-                {
-                    @Override public void send(Optional<Message<C, List<OrSet.Operation<Integer>>>> operation)
-                    {
-                        operation.ifPresent(message -> {
-                            // Send the messages to all the processes except us at random intervals
-                            processes.forEach(otherProcess -> {
-                                if (otherProcess != process)
-                                {
-                                    final Queue<Message<C, List<OrSet.Operation<Integer>>>> channel =
-                                        channelTo(otherProcess);
-                                    channel.add(message);
-                                    timer.schedule(new TimerTask()
-                                    {
-                                        @Override public void run()
-                                        {
-                                            otherProcess.receive(channel.poll());
-                                            done.countDown();
-                                        }
-                                    }, random.nextInt(tickMillis));
-                                }
-                            });
-                        });
-                    }
-
-                    private Queue<Message<C, List<OrSet.Operation<Integer>>>> channelTo(P otherProcess)
-                    {
-                        return channels.computeIfAbsent(process, p -> new HashMap<>())
-                            .computeIfAbsent(otherProcess, p -> new ConcurrentLinkedQueue<>());
-                    }
-                };
+                operation.ifPresent(message -> {
+                    // Send the messages to all the processes except us at random intervals
+                    processes.forEach(otherProcess -> {
+                        if (otherProcess != process)
+                        {
+                            final Queue<Message<C, List<OrSet.Operation<Integer>>>> channel = channelTo(otherProcess);
+                            channel.add(message);
+                            convergenceTest.schedule(() -> otherProcess.receive(channel.poll()));
+                        }
+                    });
+                });
             }
-        }.run();
+
+            private Queue<Message<C, List<OrSet.Operation<Integer>>>> channelTo(P otherProcess)
+            {
+                return channels.computeIfAbsent(process, p -> new HashMap<>())
+                    .computeIfAbsent(otherProcess, p -> new ConcurrentLinkedQueue<>());
+            }
+        }));
 
         assertNotNull(processes.stream().reduce((p1, p2) -> {
             assertEquals(p1.elements(), p2.elements());

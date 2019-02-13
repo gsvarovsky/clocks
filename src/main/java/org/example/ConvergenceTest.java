@@ -1,45 +1,62 @@
 package org.example;
 
-import java.util.Collection;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Stream;
 
-public abstract class ConvergenceTest<P>
+public class ConvergenceTest
 {
-    private final Collection<P> processes;
-    protected final int iterationTarget, tickMillis;
+    private final int iterationTarget, tickMillis;
+    private final Timer timer = new Timer(this.getClass().getSimpleName());
+    private final Random random = new Random(); // Happy with contention here
+    private final CountDownLatch done;
 
-    protected final Timer timer = new Timer(this.getClass().getSimpleName());
-    protected final Random random = new Random(); // Happy with contention here
-    protected final CountDownLatch done;
-
-    public ConvergenceTest(Collection<P> processes, int iterationTarget, int tickMillis, int countsPerProcess)
+    public ConvergenceTest(int processes, int iterationTarget, int tickMillis, int countsPerProcess)
     {
         if (countsPerProcess < 1)
             throw new IllegalArgumentException("At least one count per process task");
 
-        this.processes = processes;
         this.iterationTarget = iterationTarget;
         this.tickMillis = tickMillis;
-        this.done = new CountDownLatch(processes.size() * countsPerProcess * iterationTarget);
+        this.done = new CountDownLatch(processes * countsPerProcess * iterationTarget);
     }
 
-    public ConvergenceTest(Collection<P> processes, int countsPerProcess)
+    public ConvergenceTest(int processes, int countsPerProcess)
     {
         this(processes, 50, 10, countsPerProcess);
     }
 
-    public void run() throws InterruptedException
+    public ConvergenceTest(int processes)
     {
-        processes.forEach(p -> timer.schedule(new ProcessTask(iteration(p), 1), random.nextInt(tickMillis)));
+        this(processes, 1);
+    }
+
+    public void run(Stream<? extends Runnable> processes) throws InterruptedException
+    {
+        processes.forEach(p -> schedule(new ProcessTask(p, 1)));
         done.await();
     }
 
-    protected abstract Runnable iteration(P process);
+    public void schedule(Runnable task)
+    {
+        timer.schedule(new TimerTask()
+        {
+            @Override public void run()
+            {
+                task.run();
+                done.countDown();
+            }
+        }, random.nextInt(tickMillis));
+    }
 
-    private class ProcessTask extends TimerTask
+    public Random random()
+    {
+        return random;
+    }
+
+    private class ProcessTask implements Runnable
     {
         final Runnable iteration;
         final int i;
@@ -56,9 +73,7 @@ public abstract class ConvergenceTest<P>
             iteration.run();
 
             if (i < iterationTarget)
-                timer.schedule(new ProcessTask(iteration, i + 1), random.nextInt(tickMillis));
-
-            done.countDown();
+                schedule(new ProcessTask(iteration, i + 1));
         }
     }
 }
