@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -24,7 +25,7 @@ public class VectorClockMessageServiceTest
     @Test
     public void testFirstMessageSend()
     {
-        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
         p1Clock.send();
         assertEquals(1L, (long) p1Clock.vector().get("P1"));
     }
@@ -32,7 +33,7 @@ public class VectorClockMessageServiceTest
     @Test
     public void testFirstMessageReceive()
     {
-        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
         final List<String> data = new ArrayList<>();
         p1Clock.receive(message(clock("P2", 2L), "1"), new LinkedList<>(), data::add);
 
@@ -44,7 +45,7 @@ public class VectorClockMessageServiceTest
     @Test
     public void testFirstMessageBuffer()
     {
-        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
         final List<String> data = new ArrayList<>();
         final LinkedList<Message<VectorClock<String>, String>> buffer = new LinkedList<>();
         p1Clock.receive(message(clock("P2", 2L).with("P3", 1L), "2"),
@@ -59,7 +60,7 @@ public class VectorClockMessageServiceTest
     @Test
     public void testFirstMessageUnbuffer()
     {
-        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
         final List<String> data = new ArrayList<>();
         final LinkedList<Message<VectorClock<String>, String>> buffer = new LinkedList<>();
         p1Clock.receive(message(clock("P2", 2L).with("P3", 1L), "2"),
@@ -80,9 +81,9 @@ public class VectorClockMessageServiceTest
         final LinkedList<Message<VectorClock<String>, Integer>> buffer1 = new LinkedList<>(),
             buffer2 = new LinkedList<>(), buffer3 = new LinkedList<>();
 
-        final SyncVectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
-        final SyncVectorClockMessageService<String> p2Clock = new SyncVectorClockMessageService<>("P2");
-        final SyncVectorClockMessageService<String> p3Clock = new SyncVectorClockMessageService<>("P3");
+        final SyncVectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
+        final SyncVectorClockMessageService<String> p2Clock = new SyncVectorClockMessageService<>(() -> "P2");
+        final SyncVectorClockMessageService<String> p3Clock = new SyncVectorClockMessageService<>(() -> "P3");
 
         p2Sum.addAndGet(1);
         final Message<VectorClock<String>, Integer> m2 = message(p2Clock.send(), 1);
@@ -114,9 +115,9 @@ public class VectorClockMessageServiceTest
         final LinkedList<Message<VectorClock<String>, Integer>> buffer1 = new LinkedList<>(),
             buffer2 = new LinkedList<>(), buffer3 = new LinkedList<>();
 
-        final MessageService<VectorClock<String>> p1Clock = new SyncVectorClockMessageService<>("P1");
-        final MessageService<VectorClock<String>> p2Clock = new SyncVectorClockMessageService<>("P2");
-        final MessageService<VectorClock<String>> p3Clock = new SyncVectorClockMessageService<>("P3");
+        final MessageService<VectorClock<String>> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
+        final MessageService<VectorClock<String>> p2Clock = new SyncVectorClockMessageService<>(() -> "P2");
+        final MessageService<VectorClock<String>> p3Clock = new SyncVectorClockMessageService<>(() -> "P3");
 
         p1Sum.addAndGet(1);
         final Message<VectorClock<String>, Integer> m1 = message(p1Clock.send(), 1);
@@ -141,12 +142,29 @@ public class VectorClockMessageServiceTest
     @Test
     public void testDeliverDoesNotIncrement()
     {
-        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>("P1");
+        final VectorClockMessageService<String> p1Clock = new SyncVectorClockMessageService<>(() -> "P1");
         final List<String> data = new ArrayList<>();
         p1Clock.deliver(message(clock("P2", 2L), "1"), new LinkedList<>(), m -> data.add(m.data()));
 
         assertEquals(0L, (long) p1Clock.vector().get("P1"));
         assertEquals(2L, (long) p1Clock.vector().get("P2"));
         assertEquals(singletonList("1"), data);
+    }
+
+    @Test
+    public void testFork()
+    {
+        final VectorClockMessageService<String> service = new SyncVectorClockMessageService<>(new Supplier<String>()
+        {
+            int i = 1;
+            @Override public String get()
+            {
+                return Integer.toString(i++);
+            }
+        });
+        assertEquals("1", service.peek().processId());
+        final VectorClock<String> forkedClock = service.fork();
+        assertEquals("2", forkedClock.processId());
+        assertEquals(0L, (long)forkedClock.vector().get("2"));
     }
 }

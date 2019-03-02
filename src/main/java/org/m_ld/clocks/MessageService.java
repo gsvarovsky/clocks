@@ -118,6 +118,13 @@ public abstract class MessageService<C extends CausalClock<C>>
     public abstract void join(C time);
 
     /**
+     * Forks the clock in this message service, for a new process
+     *
+     * @return a clock suitable for a new process
+     */
+    public abstract C fork();
+
+    /**
      * The basic determinant of whether we can deliver a message with the given time.
      *
      * @param senderTime an incoming message's time

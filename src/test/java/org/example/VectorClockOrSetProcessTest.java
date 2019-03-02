@@ -10,6 +10,6 @@ public class VectorClockOrSetProcessTest extends
 {
     public OrSetProcess<VectorClock<UUID>, Integer> createProcess()
     {
-        return new OrSetProcess<>(new SyncVectorClockMessageService<>(UUID.randomUUID()));
+        return new OrSetProcess<>(new SyncVectorClockMessageService<>(UUID::randomUUID));
     }
 }

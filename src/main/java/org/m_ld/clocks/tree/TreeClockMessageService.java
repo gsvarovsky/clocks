@@ -31,4 +31,12 @@ public class TreeClockMessageService extends MessageService<TreeClock>
     {
         localTime = localTime.update(metadata);
     }
+
+    @Override
+    public synchronized TreeClock fork()
+    {
+        final TreeClock.Fork fork = localTime.fork();
+        localTime = fork.left;
+        return fork.right;
+    }
 }
