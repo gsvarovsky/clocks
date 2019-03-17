@@ -32,22 +32,19 @@ public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
 
         Operation(Operation.Type type, Object id, E element)
         {
-            requireNonNull(type);
-            requireNonNull(id);
-
-            this.type = type;
-            this.id = id;
+            this.type = requireNonNull(type);
+            this.id = requireNonNull(id);
             this.element = element;
         }
 
         @Override public int hashCode()
         {
-            return id.hashCode();
+            return Objects.hash(type, id);
         }
 
         @Override public boolean equals(Object obj)
         {
-            return obj instanceof Operation && id.equals(((Operation)obj).id);
+            return obj instanceof Operation && type == ((Operation)obj).type && id.equals(((Operation)obj).id);
         }
 
         @Override public String toString()

@@ -182,7 +182,7 @@ public class TreeClock implements CausalClock<TreeClock>, Serializable
     {
         if (isId)
         {
-            if (other.isId)
+            if (other.isId && other.ticks > ticks)
                 throw new IllegalArgumentException("Trying to update from overlapping clock");
             return this;
         }
