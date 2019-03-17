@@ -50,7 +50,7 @@ public class TreeClockTest
     @Test(expected = IllegalArgumentException.class)
     public void testBadUpdate()
     {
-        TreeClock.GENESIS.update(TreeClock.GENESIS);
+        TreeClock.GENESIS.update(TreeClock.GENESIS.tick());
     }
 
     @Test
