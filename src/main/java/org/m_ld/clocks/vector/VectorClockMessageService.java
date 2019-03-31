@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) George Svarovsky 2019. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ */
+
 package org.m_ld.clocks.vector;
 
 import org.m_ld.clocks.Message;
@@ -33,6 +38,7 @@ public abstract class VectorClockMessageService<PID> extends MessageService<Vect
     @Override
     public void event()
     {
+        //noinspection ConstantConditions
         vector().compute(processId(), (pid, ticks) -> ticks + 1);
     }
 
