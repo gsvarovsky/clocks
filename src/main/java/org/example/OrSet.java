@@ -98,20 +98,12 @@ public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
     }
 
     /**
-     * Replaces the content of this OR-Set with a copy of the given one.
+     * Clears the content of this OR-Set.
      * Great care should be taken to ensure that any process clocks are synchronised, otherwise this method could
      * permanently break convergence.
      */
-    public synchronized void reset(OrSet<E> other)
+    public synchronized void clear()
     {
         elementIds.clear();
-        other.elementIds.forEach((element, ids) -> elementIds.put(element, new HashSet<>(ids)));
-    }
-
-    public OrSet<E> copy()
-    {
-        final OrSet<E> clone = new OrSet<>();
-        clone.reset(this);
-        return clone;
     }
 }
