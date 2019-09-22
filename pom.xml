@@ -11,7 +11,7 @@
 
     <groupId>org.m-ld</groupId>
     <artifactId>clocks</artifactId>
-    <version>0.9.4</version>
+    <version>0.9.5</version>
 
     <dependencies>
         <dependency>

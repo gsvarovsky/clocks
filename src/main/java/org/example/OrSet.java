@@ -8,7 +8,6 @@ package org.example;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
@@ -60,51 +59,78 @@ public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
 
     public synchronized Set<E> elements()
     {
-        return unmodifiableSet(elementIds.keySet());
+        return new HashSet<>(elementIds.keySet());
     }
 
     public synchronized Set<Map.Entry<E, Set<UUID>>> entries()
     {
-        return unmodifiableSet(elementIds.entrySet());
+        final HashMap<E, Set<UUID>> elementsCopy = new HashMap<>(elementIds);
+        elementsCopy.replaceAll((element, ids) -> new HashSet<>(ids));
+        return elementsCopy.entrySet();
     }
 
     public synchronized Set<UUID> putEntry(Map.Entry<E, Set<UUID>> entry)
     {
+        assert !entry.getValue().isEmpty();
         return elementIds.put(entry.getKey(), entry.getValue());
     }
 
     public synchronized Optional<List<Operation<E>>> add(E element)
     {
-        return elementIds.containsKey(element) ? Optional.empty() :
-            Optional.of(apply(singletonList(new Operation<>(ADD, randomUUID(), element))));
+        if (elementIds.containsKey(element))
+        {
+            return Optional.empty();
+        }
+        else
+        {
+            final List<Operation<E>> ops = singletonList(new Operation<>(ADD, randomUUID(), element));
+            apply(ops);
+            return Optional.of(ops);
+        }
     }
 
     public synchronized Optional<List<Operation<E>>> remove(E element)
     {
-        return !elementIds.containsKey(element) ? Optional.empty() :
-            Optional.of(apply(elementIds.get(element).stream()
-                                  .map(id -> new Operation<>(REMOVE, id, element))
-                                  .collect(toList())));
+        if (!elementIds.containsKey(element))
+        {
+            return Optional.empty();
+        }
+        else
+        {
+            final List<Operation<E>> ops = elementIds.get(element).stream()
+                .map(id -> new Operation<>(REMOVE, id, element))
+                .collect(toList());
+            assert !ops.isEmpty();
+            apply(ops);
+            return Optional.of(ops);
+        }
     }
 
-    public synchronized List<Operation<E>> apply(List<Operation<E>> ops)
+    public synchronized boolean apply(List<Operation<E>> ops)
     {
-        ops.forEach(op -> {
-            switch (op.type)
-            {
-                case ADD:
-                    elementIds.computeIfAbsent(op.element, e -> new HashSet<>()).add(op.id);
-                    break;
-                case REMOVE:
-                    final Set ids = elementIds.get(op.element);
-                    if (ids != null && ids.remove(op.id))
-                    {
-                        if (ids.isEmpty())
-                            elementIds.remove(op.element);
-                    }
-            }
-        });
-        return ops;
+        boolean changed = false;
+        for (Operation<E> op : ops)
+            changed = changed || apply(op);
+        return changed;
+    }
+
+    private boolean apply(Operation<E> op)
+    {
+        switch (op.type)
+        {
+            case ADD:
+                return elementIds.computeIfAbsent(op.element, e -> new HashSet<>()).add(op.id);
+
+            case REMOVE:
+                final Set ids = elementIds.get(op.element);
+                if (ids != null && ids.remove(op.id))
+                {
+                    if (ids.isEmpty())
+                        elementIds.remove(op.element);
+                    return true;
+                }
+        }
+        return false;
     }
 
     /**
