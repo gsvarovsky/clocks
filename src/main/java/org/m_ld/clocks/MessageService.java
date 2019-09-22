@@ -36,6 +36,10 @@ public abstract class MessageService<C extends CausalClock<C>>
      * @param buffer  a buffer for out-of-order messages
      * @param process the local message data consumer, which will receive message data in order
      * @return <code>false</code> iff the buffer is full
+     * @throws RuntimeException thrown by {@code process.accept(message)}. If this occurs, the clock time will have been
+     *                          updated but no buffered messages re-considered. The caller has the opportunity to re-try
+     *                          or ignore the exception prior to calling {@link #reconsider(Iterable, Consumer)}; but
+     *                          this must be done before any further messages are received or delivered.
      */
     public <D, M extends Message<C, D>> boolean receive(
         M message, Queue<M> buffer, Consumer<? super D> process)
@@ -52,6 +56,10 @@ public abstract class MessageService<C extends CausalClock<C>>
      * @param buffer  a buffer for out-of-order messages
      * @param process the local message consumer, which will receive messages in order
      * @return <code>false</code> iff the buffer is full
+     * @throws RuntimeException thrown by {@code process.accept(message)}. If this occurs, the clock time will have been
+     *                          updated but no buffered messages re-considered. The caller has the opportunity to re-try
+     *                          or ignore the exception prior to calling {@link #reconsider(Iterable, Consumer)}; but
+     *                          this must be done before any further messages are received or delivered.
      */
     public <M extends Message<C, ?>> boolean receiveMessage(
         M message, Queue<M> buffer, Consumer<? super M> process)
@@ -81,15 +89,34 @@ public abstract class MessageService<C extends CausalClock<C>>
      * @param buffer  a buffer of messages that might be caused by the delivered message.
      *                Must implement {@link Iterator#remove()}.
      * @param process the local message consumer, which will receive messages in order
+     * @throws RuntimeException thrown by {@code process.accept(message)}. If this occurs, the clock time will have been
+     *                          updated but no buffered messages re-considered. The caller has the opportunity to re-try
+     *                          or ignore the exception prior to calling {@link #reconsider(Iterable, Consumer)}; but
+     *                          this must be done before any further messages are received or delivered.
      */
     public <M extends Message<C, ?>> void deliver(
         M message, Iterable<M> buffer, Consumer<? super M> process)
     {
-        process.accept(message);
-
         join(message.time());
 
-        // reconsider buffered messages
+        process.accept(message);
+
+        reconsider(buffer, process);
+    }
+
+    /**
+     * Reconsiders the given buffer of messages, assuming that some change has been made to the local clock.
+     *
+     * @param buffer  a buffer of messages that might be caused by the delivered message.
+     *                Must implement {@link Iterator#remove()}.
+     * @param process the local message consumer, which will receive messages in order
+     * @throws RuntimeException thrown by {@code process.accept(message)}. If this occurs, the clock time will have
+     *                          been updated but no further buffered messages re-considered. The caller has the
+     *                          opportunity to re-try or ignore the exception prior to calling this method again; but
+     *                          this must be done before any further messages are received or delivered.
+     */
+    public <M extends Message<C, ?>> void reconsider(Iterable<M> buffer, Consumer<? super M> process)
+    {
         for (Iterator<M> bufferIter = buffer.iterator(); bufferIter.hasNext(); )
         {
             final M next = bufferIter.next();
