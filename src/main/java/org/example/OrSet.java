@@ -22,7 +22,7 @@ import static org.example.OrSet.Operation.Type.REMOVE;
  */
 public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
 {
-    private final Map<E, Set<Object>> elementIds = new HashMap<>();
+    private final Map<E, Set<UUID>> elementIds = new HashMap<>();
 
     static class Operation<E>
     {
@@ -32,10 +32,10 @@ public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
         }
 
         final Operation.Type type;
-        final Object id;
+        final UUID id;
         final E element;
 
-        Operation(Operation.Type type, Object id, E element)
+        Operation(Operation.Type type, UUID id, E element)
         {
             this.type = requireNonNull(type);
             this.id = requireNonNull(id);
@@ -61,6 +61,16 @@ public class OrSet<E> implements SetProxy<E, Optional<List<OrSet.Operation<E>>>>
     public synchronized Set<E> elements()
     {
         return unmodifiableSet(elementIds.keySet());
+    }
+
+    public synchronized Set<Map.Entry<E, Set<UUID>>> entries()
+    {
+        return unmodifiableSet(elementIds.entrySet());
+    }
+
+    public synchronized Set<UUID> putEntry(Map.Entry<E, Set<UUID>> entry)
+    {
+        return elementIds.put(entry.getKey(), entry.getValue());
     }
 
     public synchronized Optional<List<Operation<E>>> add(E element)
