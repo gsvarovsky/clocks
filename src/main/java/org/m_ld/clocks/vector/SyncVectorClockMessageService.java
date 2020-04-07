@@ -1,5 +1,5 @@
 /*
- * Copyright (c) George Svarovsky 2019. All rights reserved.
+ * Copyright (c) George Svarovsky 2020. All rights reserved.
  * Licensed under the MIT License. See LICENSE file in the project root for full license information.
  */
 
@@ -49,6 +49,8 @@ public class SyncVectorClockMessageService<PID> extends VectorClockMessageServic
 
     @Override public VectorClock<PID> fork()
     {
-        return clock(newPid.get(), 0L); // Every vector clock identity is brand-new
+        final PID thatPid = newPid.get();
+        vector.put(thatPid, 0L);
+        return clock(thatPid, vector);
     }
 }

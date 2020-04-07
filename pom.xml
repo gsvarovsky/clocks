@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) George Svarovsky 2019. All rights reserved.
+  ~ Copyright (c) George Svarovsky 2020. All rights reserved.
   ~ Licensed under the MIT License. See LICENSE file in the project root for full license information.
   -->
 
@@ -11,7 +11,7 @@
 
     <groupId>org.m-ld</groupId>
     <artifactId>clocks</artifactId>
-    <version>0.9.5</version>
+    <version>0.9.6</version>
 
     <dependencies>
         <dependency>

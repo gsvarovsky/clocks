@@ -1,5 +1,5 @@
 /*
- * Copyright (c) George Svarovsky 2019. All rights reserved.
+ * Copyright (c) George Svarovsky 2020. All rights reserved.
  * Licensed under the MIT License. See LICENSE file in the project root for full license information.
  */
 
@@ -169,7 +169,10 @@ public class VectorClockMessageServiceTest
         });
         assertEquals("1", service.peek().processId());
         final VectorClock<String> forkedClock = service.fork();
+        assertEquals(0L, (long)service.peek().vector().get("1"));
+        assertEquals(0L, (long)service.peek().vector().get("2"));
         assertEquals("2", forkedClock.processId());
+        assertEquals(0L, (long)forkedClock.vector().get("1"));
         assertEquals(0L, (long)forkedClock.vector().get("2"));
     }
 }

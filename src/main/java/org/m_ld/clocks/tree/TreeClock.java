@@ -1,5 +1,5 @@
 /*
- * Copyright (c) George Svarovsky 2019. All rights reserved.
+ * Copyright (c) George Svarovsky 2020. All rights reserved.
  * Licensed under the MIT License. See LICENSE file in the project root for full license information.
  */
 
@@ -80,6 +80,14 @@ public class TreeClock implements CausalClock<TreeClock>, Serializable
      * A leaf clock with no process identity, used to scrub out IDs when merging and updating.
      */
     private static final TreeClock HALLOWS = new TreeClock(false, 0, null);
+
+    /**
+     * @return {@code true} if this clock has never been forked
+     */
+    public boolean isId()
+    {
+        return isId;
+    }
 
     /**
      * @return the ticks for this clock. This includes only ticks for this clock's ID
